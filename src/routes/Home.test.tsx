@@ -1,12 +1,12 @@
-import { render, screen } from '@testing-library/react'
-import { ThemeProvider } from '@mui/material/styles'
-import { describe, it, expect } from 'vitest'
+import { render, screen } from "@testing-library/react"
+import { ThemeProvider } from "@mui/material/styles"
+import { describe, it, expect } from "vitest"
 
-import { theme } from '@/theme'
-import Home from './Home'
+import { theme } from "@/theme"
+import Home from "./Home"
 
-describe('Home', () => {
-  it('renders correctly', () => {
+describe("Home", () => {
+  it("renders correctly", () => {
     render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -14,7 +14,7 @@ describe('Home', () => {
     )
   })
 
-  it('renders MUI Grid container', () => {
+  it("renders MUI Grid container", () => {
     const { container } = render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -22,11 +22,11 @@ describe('Home', () => {
     )
 
     // MUI Gridコンテナがレンダリングされているか確認
-    const gridContainer = container.querySelector('.MuiGrid-container')
+    const gridContainer = container.querySelector(".MuiGrid-container")
     expect(gridContainer).toBeInTheDocument()
   })
 
-  it('renders MUI Grid items', () => {
+  it("renders MUI Grid items", () => {
     const { container } = render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -34,18 +34,17 @@ describe('Home', () => {
     )
 
     // MUI Gridアイテムがレンダリングされているか確認
-    const gridItems = container.querySelectorAll('.MuiGrid-root')
+    const gridItems = container.querySelectorAll(".MuiGrid-root")
     expect(gridItems.length).toBeGreaterThan(0)
   })
 
-  it('renders Home heading', () => {
+  it("renders Home heading", () => {
     render(
       <ThemeProvider theme={theme}>
         <Home />
       </ThemeProvider>
     )
 
-    expect(screen.getByRole('heading', { name: /home/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /home/i })).toBeInTheDocument()
   })
 })
-
