@@ -1,15 +1,13 @@
-name: validate-pull-request
+name: PR CI
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - edited
       - synchronize
       - reopened
 permissions:
-  contents: read
-  pull-requests: write
-  statuses: write
+  pull-requests: read
 jobs:
   pr-title:
     name: Validate PR title
