@@ -14,36 +14,59 @@ describe("Home", () => {
     )
   })
 
-  it("renders MUI Grid container", () => {
-    const { container } = render(
-      <ThemeProvider theme={theme}>
-        <Home />
-      </ThemeProvider>
-    )
-
-    // MUI Gridコンテナがレンダリングされているか確認
-    const gridContainer = container.querySelector(".MuiGrid-container")
-    expect(gridContainer).toBeInTheDocument()
-  })
-
-  it("renders MUI Grid items", () => {
-    const { container } = render(
-      <ThemeProvider theme={theme}>
-        <Home />
-      </ThemeProvider>
-    )
-
-    const gridItems = container.querySelectorAll(".MuiGrid-root")
-    expect(gridItems.length).toBeGreaterThan(0)
-  })
-
-  it("renders Home heading", () => {
+  it("renders dashboard heading", () => {
     render(
       <ThemeProvider theme={theme}>
         <Home />
       </ThemeProvider>
     )
 
-    expect(screen.getByRole("heading", { name: /home/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /PTZ Camera Dashboard/i })).toBeInTheDocument()
+  })
+
+  it("renders camera cards", () => {
+    const { container } = render(
+      <ThemeProvider theme={theme}>
+        <Home />
+      </ThemeProvider>
+    )
+
+    // Paperコンポーネント（カメラカード）が8つ表示されているか確認
+    const cameraCards = container.querySelectorAll(".MuiPaper-root")
+    expect(cameraCards.length).toBe(8)
+  })
+
+  it("renders camera information for each card", () => {
+    render(
+      <ThemeProvider theme={theme}>
+        <Home />
+      </ThemeProvider>
+    )
+
+    // 最初のカメラの情報が表示されているか確認
+    expect(screen.getByText(/ID: 1/i)).toBeInTheDocument()
+    
+    // 複数のカメラカードがあるため、getAllByTextを使用
+    const typeLabels = screen.getAllByText(/Type:/i)
+    expect(typeLabels.length).toBe(8)
+    
+    const modeLabels = screen.getAllByText(/Mode:/i)
+    expect(modeLabels.length).toBe(8)
+    
+    const connectionLabels = screen.getAllByText(/Connection:/i)
+    expect(connectionLabels.length).toBe(8)
+  })
+
+  it("renders all camera IDs", () => {
+    render(
+      <ThemeProvider theme={theme}>
+        <Home />
+      </ThemeProvider>
+    )
+
+    // 8つのカメラIDがすべて表示されているか確認
+    for (let i = 1; i <= 8; i++) {
+      expect(screen.getByText(new RegExp(`ID: ${i}`, "i"))).toBeInTheDocument()
+    }
   })
 })
