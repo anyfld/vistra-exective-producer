@@ -32,8 +32,6 @@ export default function HashPage() {
   const handleChangeMode = () => {
     setMode((prevMode: Mode) => {
       const nextMode = prevMode === "Autonomous" ? "LightWeight" : "Autonomous"
-      // サンプルデータのモードも更新しておく
-      camera.mode = nextMode
       return nextMode
     })
   }
