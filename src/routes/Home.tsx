@@ -1,87 +1,10 @@
 import { useState } from "react"
 import { Box, Typography, Paper, Avatar } from "@mui/material"
 import VideocamIcon from "@mui/icons-material/Videocam"
-
-type CameraType = "PTZ" | "Arm"
-type Mode = "Autonomous" | "LightWeight"
-type Connection = "Reachable" | "Unreachable"
-
-interface Camera {
-  id: number
-  thumbnail?: string
-  type: CameraType
-  mode: Mode
-  connection: Connection
-  hash: string
-}
-
-// サンプルデータ
-const sampleCameras: Camera[] = [
-  {
-    id: 1,
-    thumbnail: "https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=PTZ+1",
-    type: "PTZ",
-    mode: "Autonomous",
-    connection: "Reachable",
-    hash: "1234567890",
-  },
-  {
-    id: 2,
-    thumbnail: "https://via.placeholder.com/400x300/2196F3/FFFFFF?text=Arm+2",
-    type: "Arm",
-    mode: "LightWeight",
-    connection: "Reachable",
-    hash: "1234567890",
-  },
-  {
-    id: 3,
-    thumbnail: "https://via.placeholder.com/400x300/FF9800/FFFFFF?text=PTZ+3",
-    type: "PTZ",
-    mode: "LightWeight",
-    connection: "Unreachable",
-    hash: "1234567890",
-  },
-  {
-    id: 4,
-    thumbnail: "https://via.placeholder.com/400x300/9C27B0/FFFFFF?text=Arm+4",
-    type: "Arm",
-    mode: "Autonomous",
-    connection: "Reachable",
-    hash: "1234567890",
-  },
-  {
-    id: 5,
-    thumbnail: "https://via.placeholder.com/400x300/00BCD4/FFFFFF?text=PTZ+5",
-    type: "PTZ",
-    mode: "Autonomous",
-    connection: "Reachable",
-    hash: "1234567890",
-  },
-  {
-    id: 6,
-    thumbnail: "https://via.placeholder.com/400x300/E91E63/FFFFFF?text=Arm+6",
-    type: "Arm",
-    mode: "LightWeight",
-    connection: "Unreachable",
-    hash: "1234567890",
-  },
-  {
-    id: 7,
-    thumbnail: "https://via.placeholder.com/400x300/8BC34A/FFFFFF?text=PTZ+7",
-    type: "PTZ",
-    mode: "LightWeight",
-    connection: "Reachable",
-    hash: "1234567890",
-  },
-  {
-    id: 8,
-    thumbnail: "https://via.placeholder.com/400x300/FF5722/FFFFFF?text=Arm+8",
-    type: "Arm",
-    mode: "Autonomous",
-    connection: "Unreachable",
-    hash: "1234567890",
-  },
-]
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import ErrorIcon from "@mui/icons-material/Error"
+import { sampleCameras, type Camera } from "./sampleCameras"
+import { theme } from "@/theme"
 
 // カメラカードコンポーネント
 function CameraCard({ camera }: { camera: Camera }) {
@@ -110,7 +33,7 @@ function CameraCard({ camera }: { camera: Camera }) {
           mb: 2,
           borderRadius: 1,
           overflow: "hidden",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: theme.palette.grey[100],
         }}
       >
         {camera.thumbnail && !hasError ? (
@@ -159,14 +82,21 @@ function CameraCard({ camera }: { camera: Camera }) {
               Connection:
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  backgroundColor: camera.connection === "Reachable" ? "#4caf50" : "#f44336",
-                }}
-              />
+              {camera.connection === "Reachable" ? (
+                <CheckCircleIcon
+                  sx={{
+                    fontSize: 16,
+                    color: theme.palette.success.main,
+                  }}
+                />
+              ) : (
+                <ErrorIcon
+                  sx={{
+                    fontSize: 16,
+                    color: theme.palette.error.main,
+                  }}
+                />
+              )}
               <Typography variant="body2" fontWeight="medium">
                 {camera.connection}
               </Typography>
