@@ -7,5 +7,4 @@ export type Camera = {
   type: CameraType
   mode: Mode
   connection: Connection
-  thumbnail: string
 }
