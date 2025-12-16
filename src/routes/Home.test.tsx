@@ -22,7 +22,7 @@ describe("Home", () => {
       </ThemeProvider>
     )
 
-    expect(screen.getByRole("heading", { name: /PTZ Camera Dashboard/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /Camera Dashboard/i })).toBeInTheDocument()
   })
 
   it("renders camera cards", () => {

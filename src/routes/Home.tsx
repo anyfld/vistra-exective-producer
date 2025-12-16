@@ -112,7 +112,7 @@ export default function Home() {
   return (
     <Box sx={{ width: "100%", minHeight: "100vh", p: 3 }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-        PTZ Camera Dashboard
+        Camera Dashboard
       </Typography>
       <Box
         sx={{
