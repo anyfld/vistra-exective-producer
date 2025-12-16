@@ -10,7 +10,7 @@ function App() {
       <Container component="main" sx={{ flex: 1, py: 4 }}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/:hash" element={<CameraPage />} />
+          <Route path="/:name" element={<CameraPage />} />
         </Routes>
       </Container>
     </Box>
