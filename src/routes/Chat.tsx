@@ -10,9 +10,9 @@ import {
 } from "@mui/material"
 import SendIcon from "@mui/icons-material/Send"
 
-type Role = "user" | "assistant"
+export type Role = "user" | "assistant"
 
-type ChatMessage = {
+export type ChatMessage = {
   id: string
   role: Role
   content: string
@@ -27,7 +27,8 @@ function createMockAssistantReply(userMessage: string): string {
   return `（モック応答）\n\nあなたのメッセージ:\n「${userMessage}」\n\nここにLLMからの実際の回答が表示される想定です。`
 }
 
-export default function Chat() {
+// 再利用可能なチャットコンテンツコンポーネント
+export function ChatContent() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -79,6 +80,155 @@ export default function Chat() {
   }, [messages.length, isLoading])
 
   return (
+    <Paper
+      elevation={3}
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 3,
+        overflow: "hidden",
+        height: "100%",
+      }}
+    >
+      <Box
+        component="header"
+        sx={{
+          px: 2,
+          py: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Typography variant="h6" component="h1">
+          LLM チャット
+        </Typography>
+      </Box>
+
+      <Box
+        ref={scrollContainerRef}
+        sx={(theme) => ({
+          flex: 1,
+          px: { xs: 1.5, md: 3 },
+          py: 2,
+          overflowY: "auto",
+          bgcolor: theme.palette.mode === "dark" ? "background.default" : theme.palette.grey[50],
+        })}
+        aria-label="チャットメッセージ一覧"
+      >
+        <Stack spacing={1.5}>
+          {messages.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              まだメッセージはありません。下部の入力欄から最初のメッセージを送信してみてください。
+            </Typography>
+          )}
+          {messages.map((message) => (
+            <Box
+              key={message.id}
+              sx={{
+                display: "flex",
+                justifyContent: message.role === "user" ? "flex-end" : "flex-start",
+                mb: 0.5,
+              }}
+            >
+              <Box
+                sx={{
+                  maxWidth: "80%",
+                  px: { xs: 1.5, md: 2 },
+                  py: 1.25,
+                  borderRadius: 3,
+                  bgcolor:
+                    message.role === "user"
+                      ? "primary.main"
+                      : (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.palette.grey[900]
+                            : theme.palette.background.paper,
+                  color: message.role === "user" ? "primary.contrastText" : "text.primary",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  boxShadow: 1,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: "block",
+                    mb: 0.5,
+                    opacity: 0.7,
+                  }}
+                >
+                  {message.role === "user" ? "あなた" : "アシスタント"}
+                </Typography>
+                <Typography variant="body2">{message.content}</Typography>
+              </Box>
+            </Box>
+          ))}
+
+          {isLoading && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
+              <CircularProgress size={18} />
+              <Typography variant="body2">アシスタントが考え中です…</Typography>
+            </Box>
+          )}
+        </Stack>
+      </Box>
+
+      <Box
+        component="form"
+        onSubmit={(event: FormEvent<HTMLFormElement>) => {
+          event.preventDefault()
+          void handleSubmit()
+        }}
+        sx={{
+          px: 2,
+          py: 1.5,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+        aria-label="メッセージ入力フォーム"
+      >
+        <TextField
+          fullWidth
+          multiline
+          minRows={1}
+          maxRows={4}
+          placeholder="メッセージを入力して Enter で送信（Shift + Enter で改行）"
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
+            const nativeEvent = event.nativeEvent as KeyboardEvent
+            const isComposing = nativeEvent.isComposing === true
+
+            if (event.key === "Enter" && !event.shiftKey && !isComposing) {
+              event.preventDefault()
+              void handleSubmit()
+            }
+          }}
+          InputProps={{
+            endAdornment: (
+              <IconButton
+                type="submit"
+                color="primary"
+                aria-label="メッセージを送信"
+                disabled={!input.trim() || isLoading}
+                edge="end"
+              >
+                {isLoading ? <CircularProgress size={18} /> : <SendIcon />}
+              </IconButton>
+            ),
+          }}
+        />
+      </Box>
+    </Paper>
+  )
+}
+
+// ページ表示用のコンポーネント（後方互換性のため）
+export default function Chat() {
+  return (
     <Box
       sx={{
         width: "100%",
@@ -89,150 +239,9 @@ export default function Chat() {
         px: { xs: 1, md: 2 },
       }}
     >
-      <Paper
-        elevation={3}
-        sx={{
-          width: "100%",
-          maxWidth: 960,
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: 3,
-          overflow: "hidden",
-          maxHeight: "calc(100vh - 64px)",
-        }}
-      >
-        <Box
-          component="header"
-          sx={{
-            px: 2,
-            py: 2,
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Typography variant="h6" component="h1">
-            LLM チャット
-          </Typography>
-        </Box>
-
-        <Box
-          ref={scrollContainerRef}
-          sx={(theme) => ({
-            flex: 1,
-            px: { xs: 1.5, md: 3 },
-            py: 2,
-            overflowY: "auto",
-            bgcolor: theme.palette.mode === "dark" ? "background.default" : theme.palette.grey[50],
-          })}
-          aria-label="チャットメッセージ一覧"
-        >
-          <Stack spacing={1.5}>
-            {messages.length === 0 && (
-              <Typography variant="body2" color="text.secondary">
-                まだメッセージはありません。下部の入力欄から最初のメッセージを送信してみてください。
-              </Typography>
-            )}
-            {messages.map((message) => (
-              <Box
-                key={message.id}
-                sx={{
-                  display: "flex",
-                  justifyContent: message.role === "user" ? "flex-end" : "flex-start",
-                  mb: 0.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    maxWidth: "80%",
-                    px: { xs: 1.5, md: 2 },
-                    py: 1.25,
-                    borderRadius: 3,
-                    bgcolor:
-                      message.role === "user"
-                        ? "primary.main"
-                        : (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.palette.grey[900]
-                              : theme.palette.background.paper,
-                    color: message.role === "user" ? "primary.contrastText" : "text.primary",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    boxShadow: 1,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: "block",
-                      mb: 0.5,
-                      opacity: 0.7,
-                    }}
-                  >
-                    {message.role === "user" ? "あなた" : "アシスタント"}
-                  </Typography>
-                  <Typography variant="body2">{message.content}</Typography>
-                </Box>
-              </Box>
-            ))}
-
-            {isLoading && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
-                <CircularProgress size={18} />
-                <Typography variant="body2">アシスタントが考え中です…</Typography>
-              </Box>
-            )}
-          </Stack>
-        </Box>
-
-        <Box
-          component="form"
-          onSubmit={(event: FormEvent<HTMLFormElement>) => {
-            event.preventDefault()
-            void handleSubmit()
-          }}
-          sx={{
-            px: 2,
-            py: 1.5,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-          aria-label="メッセージ入力フォーム"
-        >
-          <TextField
-            fullWidth
-            multiline
-            minRows={1}
-            maxRows={4}
-            placeholder="メッセージを入力して Enter で送信（Shift + Enter で改行）"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              const nativeEvent = event.nativeEvent as KeyboardEvent
-              const isComposing = nativeEvent.isComposing === true
-
-              if (event.key === "Enter" && !event.shiftKey && !isComposing) {
-                event.preventDefault()
-                void handleSubmit()
-              }
-            }}
-            InputProps={{
-              endAdornment: (
-                <IconButton
-                  type="submit"
-                  color="primary"
-                  aria-label="メッセージを送信"
-                  disabled={!input.trim() || isLoading}
-                  edge="end"
-                >
-                  {isLoading ? <CircularProgress size={18} /> : <SendIcon />}
-                </IconButton>
-              ),
-            }}
-          />
-        </Box>
-      </Paper>
+      <Box sx={{ width: "100%", maxWidth: 960, maxHeight: "calc(100vh - 64px)" }}>
+        <ChatContent />
+      </Box>
     </Box>
   )
 }
