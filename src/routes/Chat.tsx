@@ -68,6 +68,14 @@ export function ChatContent() {
         content: assistantText,
       }
       setMessages((prev) => [...prev, assistantMessage])
+    } catch (error) {
+      console.error("チャットリクエストの処理中にエラーが発生しました:", error)
+      const errorMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "申し訳ございません。エラーが発生しました。もう一度お試しください。",
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -199,10 +207,7 @@ export function ChatContent() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={(event) => {
-            const nativeEvent = event.nativeEvent as KeyboardEvent
-            const isComposing = nativeEvent.isComposing === true
-
-            if (event.key === "Enter" && !event.shiftKey && !isComposing) {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault()
               void handleSubmit()
             }
