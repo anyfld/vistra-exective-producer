@@ -1,37 +1,28 @@
-import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Box, Typography, CircularProgress, Alert, Paper, Button, alpha, Chip } from "@mui/material"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import GridViewIcon from "@mui/icons-material/GridView"
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord"
-
+import { useQuery } from "@connectrpc/connect-query"
 import type { Camera } from "@/types/camera"
-import { getStreams } from "@/lib/streams"
+import { listCameras } from "@/gen/proto/v1/cd_service-CameraService_connectquery"
+import { mapProtoCameras } from "@/lib/cameraMapper"
 import WebRTCPlayer from "@/components/WebRTCPlayer"
 import { colors } from "@/theme"
 
 export default function Monitor() {
-  const [cameras, setCameras] = useState<Camera[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const loadStreams = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const streams = await getStreams()
-        setCameras(streams)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load streams")
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // use connect-query to fetch cameras from CameraService.ListCameras
+  const { data, isLoading, error } = useQuery(listCameras, {
+    masterMfId: "",
+    modeFilter: [],
+    statusFilter: [],
+    pageSize: 100,
+    pageToken: "",
+  })
 
-    loadStreams()
-  }, [])
+  const cameras: Camera[] = mapProtoCameras(data?.cameras)
 
   const columnCount = (() => {
     if (cameras.length <= 1) {
@@ -160,7 +151,7 @@ export default function Monitor() {
       {/* エラー */}
       {error && (
         <Alert severity="error" sx={{ mx: 1 }}>
-          {error}
+          {error instanceof Error ? error.message : String(error)}
         </Alert>
       )}
 

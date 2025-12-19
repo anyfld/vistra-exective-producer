@@ -2,6 +2,16 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { ThemeProvider } from "@mui/material/styles"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
+vi.mock("@connectrpc/connect-query", () => ({
+  useQuery: vi.fn(),
+}))
+
+vi.mock("@/lib/cameraMapper", () => ({
+  mapProtoCameras: vi.fn(),
+}))
+
+import { useQuery } from "@connectrpc/connect-query"
+import { mapProtoCameras } from "@/lib/cameraMapper"
 import { theme } from "@/theme"
 import Home from "./Home"
 
@@ -32,8 +42,12 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mockedNavigate,
 }))
 
-vi.mock("@/lib/streams", () => ({
-  getStreams: vi.fn(() => Promise.resolve(mockCameras)),
+vi.mock("@connectrpc/connect-query", () => ({
+  useQuery: vi.fn(),
+}))
+
+vi.mock("@/lib/cameraMapper", () => ({
+  mapProtoCameras: vi.fn(),
 }))
 
 vi.mock("@/components/WebRTCPlayer", () => ({
@@ -45,7 +59,18 @@ beforeEach(() => {
 })
 
 describe("Home", () => {
+  // typed mocked functions
+  const mockedUseQuery = vi.mocked(useQuery)
+  const mockedMapProto = vi.mocked(mapProtoCameras)
+
   it("renders correctly", () => {
+    mockedUseQuery.mockReturnValue({
+      data: { cameras: [] },
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useQuery>)
+    mockedMapProto.mockReturnValue(mockCameras)
+
     render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -64,6 +89,13 @@ describe("Home", () => {
   })
 
   it("renders camera cards", async () => {
+    mockedUseQuery.mockReturnValue({
+      data: { cameras: [] },
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useQuery>)
+    mockedMapProto.mockReturnValue(mockCameras)
+
     const { container } = render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -90,6 +122,13 @@ describe("Home", () => {
   })
 
   it("renders camera information for each card", async () => {
+    mockedUseQuery.mockReturnValue({
+      data: { cameras: [] },
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useQuery>)
+    mockedMapProto.mockReturnValue(mockCameras)
+
     render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -119,6 +158,13 @@ describe("Home", () => {
   })
 
   it("renders all camera names", async () => {
+    mockedUseQuery.mockReturnValue({
+      data: { cameras: [] },
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useQuery>)
+    mockedMapProto.mockReturnValue(mockCameras)
+
     render(
       <ThemeProvider theme={theme}>
         <Home />
@@ -138,6 +184,13 @@ describe("Home", () => {
   })
 
   it("navigates to camera detail page when a camera card is clicked", async () => {
+    mockedUseQuery.mockReturnValue({
+      data: { cameras: [] },
+      isLoading: false,
+      error: null,
+    } as unknown as ReturnType<typeof useQuery>)
+    mockedMapProto.mockReturnValue(mockCameras)
+
     render(
       <ThemeProvider theme={theme}>
         <Home />
