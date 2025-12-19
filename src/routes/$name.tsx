@@ -63,22 +63,18 @@ function MetricCard({ metric, index }: { metric: MetricData; index: number }) {
       </Box>
       <MetricRow label="Latency" value={metric.latency} />
       <MetricRow label="Jitter" value={metric.jitter} />
-      <MetricRow label="Packet Loss" value={metric.packetLoss} isGood={metric.packetLoss === "0%"} />
+      <MetricRow
+        label="Packet Loss"
+        value={metric.packetLoss}
+        isGood={metric.packetLoss === "0%"}
+      />
       <MetricRow label="Video Frame" value={metric.videoFrame} />
     </Paper>
   )
 }
 
 // メトリクス行コンポーネント
-function MetricRow({
-  label,
-  value,
-  isGood,
-}: {
-  label: string
-  value: string
-  isGood?: boolean
-}) {
+function MetricRow({ label, value, isGood }: { label: string; value: string; isGood?: boolean }) {
   return (
     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <Typography variant="caption" color="text.secondary">
@@ -261,11 +257,7 @@ export default function CameraPage() {
         </Box>
 
         {/* モード変更ボタン */}
-        <Button
-          variant="contained"
-          onClick={handleChangeMode}
-          sx={{ px: 3 }}
-        >
+        <Button variant="contained" onClick={handleChangeMode} sx={{ px: 3 }}>
           Change Mode
         </Button>
       </Box>

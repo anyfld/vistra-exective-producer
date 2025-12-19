@@ -2,13 +2,13 @@
 
 :root {
   /* カラー変数 */
-  --color-primary: #00D4AA;
-  --color-primary-light: #33DDBB;
-  --color-secondary: #7C4DFF;
-  --color-background: #0A0F14;
-  --color-surface: #12181F;
-  --color-text: #E8EAED;
-  --color-text-secondary: #9AA0A6;
+  --color-primary: #00d4aa;
+  --color-primary-light: #33ddbb;
+  --color-secondary: #7c4dff;
+  --color-background: #0a0f14;
+  --color-surface: #12181f;
+  --color-text: #e8eaed;
+  --color-text-secondary: #9aa0a6;
 }
 
 *,
@@ -79,18 +79,18 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #5F6368;
+  background: #5f6368;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #80868B;
+  background: #80868b;
 }
 
 /* Firefox用スクロールバー */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #5F6368 var(--color-background);
+  scrollbar-color: #5f6368 var(--color-background);
 }
 
 /* アニメーション */
@@ -115,7 +115,8 @@ button {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

@@ -211,11 +211,10 @@ export function ChatContent() {
                     message.role === "user"
                       ? `linear-gradient(135deg, ${colors.primary.main} 0%, ${colors.primary.dark} 100%)`
                       : colors.background.paper,
-                  color: message.role === "user" ? colors.primary.contrastText : colors.text.primary,
+                  color:
+                    message.role === "user" ? colors.primary.contrastText : colors.text.primary,
                   border:
-                    message.role === "assistant"
-                      ? `1px solid ${alpha("#fff", 0.08)}`
-                      : "none",
+                    message.role === "assistant" ? `1px solid ${alpha("#fff", 0.08)}` : "none",
                   whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
                   boxShadow:
@@ -326,9 +325,8 @@ export function ChatContent() {
                 disabled={!input.trim() || isLoading}
                 edge="end"
                 sx={{
-                  backgroundColor: input.trim() && !isLoading
-                    ? alpha(colors.primary.main, 0.15)
-                    : "transparent",
+                  backgroundColor:
+                    input.trim() && !isLoading ? alpha(colors.primary.main, 0.15) : "transparent",
                   "&:hover": {
                     backgroundColor: alpha(colors.primary.main, 0.25),
                   },
