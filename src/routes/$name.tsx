@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useMutation, useQuery } from "@connectrpc/connect-query"
 import { useParams, useNavigate } from "react-router-dom"
 import { Box, Typography, Button, IconButton, Paper, Chip, alpha } from "@mui/material"
@@ -122,11 +122,20 @@ function ControlButton({
       color="primary"
       size="medium"
       onClick={onClick}
-      onMouseDown={onPressStart}
-      onMouseUp={onPressEnd}
-      onMouseLeave={onPressEnd}
-      onTouchStart={onPressStart}
-      onTouchEnd={onPressEnd}
+      onPointerDown={(e) => {
+        // 長押し中のコンテキストメニューやテキスト選択を抑止
+        e.preventDefault()
+        ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+        onPressStart?.()
+      }}
+      onPointerUp={(e) => {
+        e.preventDefault()
+        onPressEnd?.()
+      }}
+      onPointerCancel={() => {
+        onPressEnd?.()
+      }}
+      onContextMenu={(e) => e.preventDefault()}
       disabled={disabled}
       sx={{
         backgroundColor: alpha(colors.primary.main, 0.1),
@@ -183,8 +192,11 @@ export default function CameraPage() {
 
   const genId = () => globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
 
+  // 長押し用のインターバルRef
+  const longPressIntervalRef = useRef<number | null>(null)
+
   // ローカルPTZ状態（絶対値）。サーバーの能力が不明なため、デフォルトレンジに合わせてクランプ。
-  const [ptz, setPTZ] = useState<Pick<PTZParameters, "pan" | "tilt" | "zoom">>({
+  const [, setPTZ] = useState<Pick<PTZParameters, "pan" | "tilt" | "zoom">>({
     pan: 0,
     tilt: 0,
     zoom: 1, // サンプルのデフォルトZoomMinが1.0
@@ -192,24 +204,38 @@ export default function CameraPage() {
 
   const clamp = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max)
 
-  const sendPTZAbsolute = useCallback(
-    (next: Partial<PTZParameters>) => {
-      if (!cameraId) return
-      const target = {
-        pan: next.pan ?? ptz.pan,
-        tilt: next.tilt ?? ptz.tilt,
-        zoom: next.zoom ?? ptz.zoom,
-        panSpeed: next.panSpeed ?? 0.5,
-        tiltSpeed: next.tiltSpeed ?? 0.5,
-        zoomSpeed: next.zoomSpeed ?? 0.5,
+  // 画面外で指が離れた場合でも確実に停止
+  useEffect(() => {
+    const stop = () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
       }
-      // 即座にローカル状態を更新（乐観的更新）
-      setPTZ({ pan: target.pan, tilt: target.tilt, zoom: target.zoom })
+    }
+    window.addEventListener("pointerup", stop)
+    window.addEventListener("pointercancel", stop)
+    return () => {
+      window.removeEventListener("pointerup", stop)
+      window.removeEventListener("pointercancel", stop)
+    }
+  }, [])
+
+  // 指定ターゲット（絶対値）をサーバへ送信（ローカル状態は変更しない）
+  const sendPTZAbsoluteTarget = useCallback(
+    (target: {
+      pan: number
+      tilt: number
+      zoom: number
+      panSpeed: number
+      tiltSpeed: number
+      zoomSpeed: number
+    }) => {
+      if (!cameraId) return
       const command = {
         commandId: genId(),
         cameraId,
         type: ControlCommandType.PTZ_ABSOLUTE,
-        ptzParameters: target,
+        ptzParameters: target as unknown as PTZParameters,
         presetNumber: 0,
         focusValue: 0,
         timeoutMs: 5000,
@@ -224,11 +250,10 @@ export default function CameraPage() {
           })
         } catch (e) {
           console.error("Failed to send PTZ absolute", e)
-          // エラー時はロールバック（ただしUIは即座に更新済み）
         }
       })()
     },
-    [cameraId, ptz, sendCommand]
+    [cameraId, sendCommand]
   )
   // 増分制御のステップとレンジ
   const PAN_STEP = 10 // degrees
@@ -243,20 +268,83 @@ export default function CameraPage() {
     zoomMax: 5,
   }
 
-  const nudgePan = (dir: 1 | -1) => {
-    const nextPan = clamp(ptz.pan + dir * PAN_STEP, RANGE.panMin, RANGE.panMax)
-    sendPTZAbsolute({ pan: nextPan, panSpeed: 0.6 })
-  }
+  const nudgePan = useCallback(
+    (dir: 1 | -1) => {
+      setPTZ((prev) => {
+        const nextPan = clamp(prev.pan + dir * PAN_STEP, RANGE.panMin, RANGE.panMax)
+        const target = {
+          pan: nextPan,
+          tilt: prev.tilt,
+          zoom: prev.zoom,
+          panSpeed: 0.6,
+          tiltSpeed: 0.5,
+          zoomSpeed: 0.5,
+        }
+        sendPTZAbsoluteTarget(target)
+        return { pan: nextPan, tilt: prev.tilt, zoom: prev.zoom }
+      })
+    },
+    [sendPTZAbsoluteTarget]
+  )
 
-  const nudgeTilt = (dir: 1 | -1) => {
-    const nextTilt = clamp(ptz.tilt + dir * TILT_STEP, RANGE.tiltMin, RANGE.tiltMax)
-    sendPTZAbsolute({ tilt: nextTilt, tiltSpeed: 0.6 })
-  }
+  const nudgeTilt = useCallback(
+    (dir: 1 | -1) => {
+      setPTZ((prev) => {
+        const nextTilt = clamp(prev.tilt + dir * TILT_STEP, RANGE.tiltMin, RANGE.tiltMax)
+        const target = {
+          pan: prev.pan,
+          tilt: nextTilt,
+          zoom: prev.zoom,
+          panSpeed: 0.5,
+          tiltSpeed: 0.6,
+          zoomSpeed: 0.5,
+        }
+        sendPTZAbsoluteTarget(target)
+        return { pan: prev.pan, tilt: nextTilt, zoom: prev.zoom }
+      })
+    },
+    [sendPTZAbsoluteTarget]
+  )
 
-  const nudgeZoom = (dir: 1 | -1) => {
-    const nextZoom = clamp(ptz.zoom + dir * ZOOM_STEP, RANGE.zoomMin, RANGE.zoomMax)
-    sendPTZAbsolute({ zoom: nextZoom, zoomSpeed: 0.6 })
-  }
+  const nudgeZoom = useCallback(
+    (dir: 1 | -1) => {
+      setPTZ((prev) => {
+        const nextZoom = clamp(prev.zoom + dir * ZOOM_STEP, RANGE.zoomMin, RANGE.zoomMax)
+        const target = {
+          pan: prev.pan,
+          tilt: prev.tilt,
+          zoom: nextZoom,
+          panSpeed: 0.5,
+          tiltSpeed: 0.5,
+          zoomSpeed: 0.6,
+        }
+        sendPTZAbsoluteTarget(target)
+        return { pan: prev.pan, tilt: prev.tilt, zoom: nextZoom }
+      })
+    },
+    [sendPTZAbsoluteTarget]
+  )
+
+  // 長押し用ハンドラー生成関数
+  const createLongPressHandlers = (nudgeFunc: (dir: 1 | -1) => void, dir: 1 | -1) => ({
+    onPressStart: () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
+      }
+      // 最初の操作は即座、その後200ms間隔で繰り返す
+      nudgeFunc(dir)
+      longPressIntervalRef.current = window.setInterval(() => {
+        nudgeFunc(dir)
+      }, 200)
+    },
+    onPressEnd: () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
+      }
+    },
+  })
 
   const handleBack = () => {
     navigate("/")
@@ -492,28 +580,28 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ArrowUpwardIcon />}
                 label="視野を上に移動"
-                onClick={() => nudgeTilt(+1)}
+                {...createLongPressHandlers(nudgeTilt, +1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowBackIosNewIcon />}
                 label="視野を左に移動"
-                onClick={() => nudgePan(-1)}
+                {...createLongPressHandlers(nudgePan, -1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowForwardIosIcon />}
                 label="視野を右に移動"
-                onClick={() => nudgePan(+1)}
+                {...createLongPressHandlers(nudgePan, +1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowDownwardIcon />}
                 label="視野を下に移動"
-                onClick={() => nudgeTilt(-1)}
+                {...createLongPressHandlers(nudgeTilt, -1)}
                 disabled={sending}
               />
               <Box />
@@ -536,13 +624,13 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ZoomInIcon />}
                 label="ズームイン"
-                onClick={() => nudgeZoom(+1)}
+                {...createLongPressHandlers(nudgeZoom, +1)}
                 disabled={sending}
               />
               <ControlButton
                 icon={<ZoomOutIcon />}
                 label="ズームアウト"
-                onClick={() => nudgeZoom(-1)}
+                {...createLongPressHandlers(nudgeZoom, -1)}
                 disabled={sending}
               />
             </Box>
