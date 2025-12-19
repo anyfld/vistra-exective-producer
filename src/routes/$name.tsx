@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react"
-import { useMutation } from "@connectrpc/connect-query"
+import { useState, useCallback } from "react"
+import { useMutation, useQuery } from "@connectrpc/connect-query"
 import { useParams, useNavigate } from "react-router-dom"
 import { Box, Typography, Button, IconButton, Paper, Chip, alpha } from "@mui/material"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
@@ -18,6 +18,7 @@ import WebRTCPlayer from "@/components/WebRTCPlayer"
 import { FDService } from "@/gen/proto/v1/fd_service_pb"
 import { ControlCommandType } from "@/gen/proto/v1/fd_service_pb"
 import type { PTZParameters } from "@/gen/proto/v1/cinematography_pb"
+import { getCamera } from "@/gen/proto/v1/cd_service-CameraService_connectquery"
 
 // メトリクス型
 type MetricData = {
@@ -145,7 +146,7 @@ function ControlButton({
 }
 
 export default function CameraPage() {
-  const { name } = useParams<{ name: string }>()
+  const { cameraId: cameraIdParam } = useParams<{ cameraId: string }>()
   const navigate = useNavigate()
   const [mode] = useState<Mode>("Autonomous")
 
@@ -153,29 +154,40 @@ export default function CameraPage() {
     FDService.method.streamControlCommands
   )
 
-  const pressTimerRef = useRef<number | null>(null)
-  const repeatIntervalRef = useRef<number | null>(null)
+  const cameraId = cameraIdParam ?? ""
+  const { data: cameraData } = useQuery(getCamera, { cameraId }, { enabled: Boolean(cameraId) })
+  const cameraName = (cameraData?.camera?.name ?? cameraId) || "camera"
 
   const genId = () => globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
 
-  const sendPTZContinuous = useCallback(
-    async (velocity: Partial<PTZParameters>) => {
-      if (!name) return
+  // ローカルPTZ状態（絶対値）。サーバーの能力が不明なため、デフォルトレンジに合わせてクランプ。
+  const [ptz, setPTZ] = useState<Pick<PTZParameters, "pan" | "tilt" | "zoom">>({
+    pan: 0,
+    tilt: 0,
+    zoom: 1, // サンプルのデフォルトZoomMinが1.0
+  })
+
+  const clamp = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max)
+
+  const sendPTZAbsolute = useCallback(
+    async (next: Partial<PTZParameters>) => {
+      if (!cameraId) return
+      const target = {
+        pan: next.pan ?? ptz.pan,
+        tilt: next.tilt ?? ptz.tilt,
+        zoom: next.zoom ?? ptz.zoom,
+        panSpeed: next.panSpeed ?? 0.5,
+        tiltSpeed: next.tiltSpeed ?? 0.5,
+        zoomSpeed: next.zoomSpeed ?? 0.5,
+      }
       const command = {
         commandId: genId(),
-        cameraId: name,
-        type: ControlCommandType.PTZ_CONTINUOUS,
-        ptzParameters: {
-          pan: 0,
-          tilt: 0,
-          zoom: 0,
-          panSpeed: velocity.panSpeed ?? 0,
-          tiltSpeed: velocity.tiltSpeed ?? 0,
-          zoomSpeed: velocity.zoomSpeed ?? 0,
-        },
+        cameraId,
+        type: ControlCommandType.PTZ_ABSOLUTE,
+        ptzParameters: target,
         presetNumber: 0,
         focusValue: 0,
-        timeoutMs: 3000,
+        timeoutMs: 5000,
       }
       try {
         await sendCommand({
@@ -184,80 +196,40 @@ export default function CameraPage() {
             value: command,
           },
         })
+        setPTZ({ pan: target.pan, tilt: target.tilt, zoom: target.zoom })
       } catch (e) {
-        console.error("Failed to send PTZ continuous", e)
+        console.error("Failed to send PTZ absolute", e)
       }
     },
-    [name, sendCommand]
+    [cameraId, ptz, sendCommand]
   )
+  // 増分制御のステップとレンジ
+  const PAN_STEP = 10 // degrees
+  const TILT_STEP = 5 // degrees
+  const ZOOM_STEP = 0.5 // zoom units
+  const RANGE = {
+    panMin: -180,
+    panMax: 180,
+    tiltMin: -45,
+    tiltMax: 45,
+    zoomMin: 1,
+    zoomMax: 5,
+  }
 
-  const sendPTZStop = useCallback(async () => {
-    if (!name) return
-    const command = {
-      commandId: genId(),
-      cameraId: name,
-      type: ControlCommandType.PTZ_STOP,
-      ptzParameters: {
-        pan: 0,
-        tilt: 0,
-        zoom: 0,
-        panSpeed: 0,
-        tiltSpeed: 0,
-        zoomSpeed: 0,
-      },
-      presetNumber: 0,
-      focusValue: 0,
-      timeoutMs: 1000,
-    }
-    try {
-      await sendCommand({
-        message: {
-          case: "command",
-          value: command,
-        },
-      })
-    } catch (e) {
-      console.error("Failed to send PTZ stop", e)
-    }
-  }, [name, sendCommand])
+  const nudgePan = (dir: 1 | -1) => {
+    const nextPan = clamp(ptz.pan + dir * PAN_STEP, RANGE.panMin, RANGE.panMax)
+    sendPTZAbsolute({ pan: nextPan, panSpeed: 0.6 })
+  }
 
-  const handlePressStart = useCallback(
-    (delta: Partial<PTZParameters>) => {
-      // 長押し開始: 連続移動の開始を一度だけ送信
-      // 方向は速度の符号で表現
-      sendPTZContinuous({
-        panSpeed: delta.panSpeed,
-        tiltSpeed: delta.tiltSpeed,
-        zoomSpeed: delta.zoomSpeed,
-      })
+  const nudgeTilt = (dir: 1 | -1) => {
+    const nextTilt = clamp(ptz.tilt + dir * TILT_STEP, RANGE.tiltMin, RANGE.tiltMax)
+    sendPTZAbsolute({ tilt: nextTilt, tiltSpeed: 0.6 })
+  }
 
-      // もし端末側が心拍(keep-alive)を必要とするなら、以下の間欠送信を有効化
-      // デフォルトでは送らないが、必要時にはコメントアウト解除
-      // pressTimerRef.current = window.setTimeout(() => {
-      //   repeatIntervalRef.current = window.setInterval(() => {
-      //     sendPTZContinuous({
-      //       panSpeed: delta.panSpeed,
-      //       tiltSpeed: delta.tiltSpeed,
-      //       zoomSpeed: delta.zoomSpeed,
-      //     })
-      //   }, 1000)
-      // }, 1000)
-    },
-    [sendPTZContinuous]
-  )
-
-  const handlePressEnd = useCallback(() => {
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current)
-      pressTimerRef.current = null
-    }
-    if (repeatIntervalRef.current) {
-      clearInterval(repeatIntervalRef.current)
-      repeatIntervalRef.current = null
-    }
-    // 長押し終了: 停止コマンド送信
-    sendPTZStop()
-  }, [sendPTZStop])
+  const nudgeZoom = (dir: 1 | -1) => {
+    const nextZoom = clamp(ptz.zoom + dir * ZOOM_STEP, RANGE.zoomMin, RANGE.zoomMax)
+    sendPTZAbsolute({ zoom: nextZoom, zoomSpeed: 0.6 })
+  }
 
   const handleBack = () => {
     navigate("/")
@@ -351,7 +323,7 @@ export default function CameraPage() {
                   lineHeight: 1.2,
                 }}
               >
-                {name}
+                {cameraName}
               </Typography>
             </Box>
           </Box>
@@ -399,7 +371,7 @@ export default function CameraPage() {
             position: "relative",
           }}
         >
-          <WebRTCPlayer name={name ?? "camera"} />
+          <WebRTCPlayer name={cameraName} />
 
           {/* LIVE バッジ */}
           <Box
@@ -493,32 +465,28 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ArrowUpwardIcon />}
                 label="視野を上に移動"
-                onPressStart={() => handlePressStart({ tiltSpeed: +0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgeTilt(+1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowBackIosNewIcon />}
                 label="視野を左に移動"
-                onPressStart={() => handlePressStart({ panSpeed: -0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgePan(-1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowForwardIosIcon />}
                 label="視野を右に移動"
-                onPressStart={() => handlePressStart({ panSpeed: +0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgePan(+1)}
                 disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowDownwardIcon />}
                 label="視野を下に移動"
-                onPressStart={() => handlePressStart({ tiltSpeed: -0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgeTilt(-1)}
                 disabled={sending}
               />
               <Box />
@@ -541,15 +509,13 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ZoomInIcon />}
                 label="ズームイン"
-                onPressStart={() => handlePressStart({ zoomSpeed: +0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgeZoom(+1)}
                 disabled={sending}
               />
               <ControlButton
                 icon={<ZoomOutIcon />}
                 label="ズームアウト"
-                onPressStart={() => handlePressStart({ zoomSpeed: -0.7 })}
-                onPressEnd={handlePressEnd}
+                onClick={() => nudgeZoom(-1)}
                 disabled={sending}
               />
             </Box>

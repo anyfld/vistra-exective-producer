@@ -22,12 +22,14 @@ const mockedMapProto = vi.mocked(mapProtoCameras)
 
 const mockCameras = [
   {
+    id: "cam-mon-1",
     name: "camera-1",
     type: "PTZ" as const,
     mode: "Autonomous" as const,
     connection: "Reachable" as const,
   },
   {
+    id: "cam-mon-2",
     name: "camera-2",
     type: "PTZ" as const,
     mode: "Autonomous" as const,
