@@ -6,13 +6,15 @@ import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobu
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { BoundingBox, CameraAngle, CinematographyInstruction, CinematographyResult, PTZParameters, ShotType, Subject } from "./cinematography_pb";
 import { file_v1_cinematography } from "./cinematography_pb";
+import type { CameraStatus } from "./cr_service_pb";
+import { file_v1_cr_service } from "./cr_service_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file v1/fd_service.proto.
  */
 export const file_v1_fd_service: GenFile = /*@__PURE__*/
-  fileDesc("ChN2MS9mZF9zZXJ2aWNlLnByb3RvEgJ2MSJSChxFeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXF1ZXN0EjIKC2luc3RydWN0aW9uGAEgASgLMh0udjEuQ2luZW1hdG9ncmFwaHlJbnN0cnVjdGlvbiJJCh1FeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXNwb25zZRIoCgZyZXN1bHQYASABKAsyGC52MS5DaW5lbWF0b2dyYXBoeVJlc3VsdCJJCjBGRFNlcnZpY2VTdHJlYW1DaW5lbWF0b2dyYXBoeUluc3RydWN0aW9uc1JlcXVlc3QSFQoNc291cmNlX2ZpbHRlchgBIAMoCSKNAQoxRkRTZXJ2aWNlU3RyZWFtQ2luZW1hdG9ncmFwaHlJbnN0cnVjdGlvbnNSZXNwb25zZRIyCgtpbnN0cnVjdGlvbhgBIAEoCzIdLnYxLkNpbmVtYXRvZ3JhcGh5SW5zdHJ1Y3Rpb24SDgoGc291cmNlGAIgASgJEhQKDHRpbWVzdGFtcF9tcxgDIAEoAyJ8CglJbWFnZURhdGESHwoGZm9ybWF0GAEgASgOMg8udjEuSW1hZ2VGb3JtYXQSDAoEZGF0YRgCIAEoDBILCgN1cmwYAyABKAkSDQoFd2lkdGgYBCABKA0SDgoGaGVpZ2h0GAUgASgNEhQKDHRpbWVzdGFtcF9tcxgGIAEoAyJZChNQcm9jZXNzSW1hZ2VSZXF1ZXN0EhwKBWltYWdlGAEgASgLMg0udjEuSW1hZ2VEYXRhEiQKD3RhcmdldF9zdWJqZWN0cxgCIAMoCzILLnYxLlN1YmplY3QiYgoUUHJvY2Vzc0ltYWdlUmVzcG9uc2USLgoRZGV0ZWN0ZWRfc3ViamVjdHMYASADKAsyEy52MS5EZXRlY3RlZFN1YmplY3QSGgoScHJvY2Vzc2luZ190aW1lX21zGAIgASgNImoKD0RldGVjdGVkU3ViamVjdBIcCgdzdWJqZWN0GAEgASgLMgsudjEuU3ViamVjdBISCgpjb25maWRlbmNlGAIgASgCEiUKDGRldGVjdGVkX2JveBgDIAEoCzIPLnYxLkJvdW5kaW5nQm94ImsKG1N0YXJ0UGF0dGVybk1hdGNoaW5nUmVxdWVzdBIRCgljYW1lcmFfaWQYASABKAkSJAoPdGFyZ2V0X3N1YmplY3RzGAIgAygLMgsudjEuU3ViamVjdBITCgtpbnRlcnZhbF9tcxgDIAEoDSJDChxTdGFydFBhdHRlcm5NYXRjaGluZ1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEgoKc2Vzc2lvbl9pZBgCIAEoCSIwChpTdG9wUGF0dGVybk1hdGNoaW5nUmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJIi4KG1N0b3BQYXR0ZXJuTWF0Y2hpbmdSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIjYKIFN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHNSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkikAEKIVN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHNSZXNwb25zZRISCgpzZXNzaW9uX2lkGAEgASgJEhEKCWNhbWVyYV9pZBgCIAEoCRIuChFkZXRlY3RlZF9zdWJqZWN0cxgDIAMoCzITLnYxLkRldGVjdGVkU3ViamVjdBIUCgx0aW1lc3RhbXBfbXMYBCABKAMi0QEKF0NhbGN1bGF0ZUZyYW1pbmdSZXF1ZXN0EhEKCWNhbWVyYV9pZBgBIAEoCRImCgtjdXJyZW50X3B0ehgCIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSJgoQdGFyZ2V0X3Nob3RfdHlwZRgDIAEoDjIMLnYxLlNob3RUeXBlEiwKD3RhcmdldF9zdWJqZWN0cxgEIAMoCzITLnYxLkRldGVjdGVkU3ViamVjdBIlCgx0YXJnZXRfYW5nbGUYBSABKA4yDy52MS5DYW1lcmFBbmdsZSKNAQoYQ2FsY3VsYXRlRnJhbWluZ1Jlc3BvbnNlEikKDmNhbGN1bGF0ZWRfcHR6GAEgASgLMhEudjEuUFRaUGFyYW1ldGVycxIeChZlc3RpbWF0ZWRfbW92ZV90aW1lX21zGAIgASgNEg8KB3N1Y2Nlc3MYAyABKAgSFQoNZXJyb3JfbWVzc2FnZRgEIAEoCSLzAQoOQ29udHJvbENvbW1hbmQSEgoKY29tbWFuZF9pZBgBIAEoCRIRCgljYW1lcmFfaWQYAiABKAkSJAoEdHlwZRgDIAEoDjIWLnYxLkNvbnRyb2xDb21tYW5kVHlwZRIpCg5wdHpfcGFyYW1ldGVycxgEIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSFQoNcHJlc2V0X251bWJlchgFIAEoDRITCgtmb2N1c192YWx1ZRgGIAEoAhIpCg5hcm1fcGFyYW1ldGVycxgHIAEoCzIRLnYxLkFybVBhcmFtZXRlcnMSEgoKdGltZW91dF9tcxgIIAEoDSI0Cg1Bcm1QYXJhbWV0ZXJzEhQKDGpvaW50X2FuZ2xlcxgBIAMoAhINCgVzcGVlZBgCIAEoAiKXAQoUQ29udHJvbENvbW1hbmRSZXN1bHQSEgoKY29tbWFuZF9pZBgBIAEoCRIPCgdzdWNjZXNzGAIgASgIEhUKDWVycm9yX21lc3NhZ2UYAyABKAkSKAoNcmVzdWx0aW5nX3B0ehgEIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSGQoRZXhlY3V0aW9uX3RpbWVfbXMYBSABKA0iQAoZU2VuZENvbnRyb2xDb21tYW5kUmVxdWVzdBIjCgdjb21tYW5kGAEgASgLMhIudjEuQ29udHJvbENvbW1hbmQiRgoaU2VuZENvbnRyb2xDb21tYW5kUmVzcG9uc2USKAoGcmVzdWx0GAEgASgLMhgudjEuQ29udHJvbENvbW1hbmRSZXN1bHQiMQocU3RyZWFtQ29udHJvbENvbW1hbmRzUmVxdWVzdBIRCgljYW1lcmFfaWQYASABKAkiWgodU3RyZWFtQ29udHJvbENvbW1hbmRzUmVzcG9uc2USIwoHY29tbWFuZBgBIAEoCzISLnYxLkNvbnRyb2xDb21tYW5kEhQKDHRpbWVzdGFtcF9tcxgCIAEoAyKzAQoLQ2FtZXJhU3RhdGUSEQoJY2FtZXJhX2lkGAEgASgJEiYKC2N1cnJlbnRfcHR6GAIgASgLMhEudjEuUFRaUGFyYW1ldGVycxIRCglpc19tb3ZpbmcYAyABKAgSEQoJaGFzX2Vycm9yGAQgASgIEhUKDWVycm9yX21lc3NhZ2UYBSABKAkSFQoNY3VycmVudF9mb2N1cxgGIAEoAhIVCg11cGRhdGVkX2F0X21zGAcgASgDIjoKGFJlcG9ydENhbWVyYVN0YXRlUmVxdWVzdBIeCgVzdGF0ZRgBIAEoCzIPLnYxLkNhbWVyYVN0YXRlIjEKGVJlcG9ydENhbWVyYVN0YXRlUmVzcG9uc2USFAoMYWNrbm93bGVkZ2VkGAEgASgIIioKFUdldENhbWVyYVN0YXRlUmVxdWVzdBIRCgljYW1lcmFfaWQYASABKAkiOAoWR2V0Q2FtZXJhU3RhdGVSZXNwb25zZRIeCgVzdGF0ZRgBIAEoCzIPLnYxLkNhbWVyYVN0YXRlKm4KC0ltYWdlRm9ybWF0EhwKGElNQUdFX0ZPUk1BVF9VTlNQRUNJRklFRBAAEhUKEUlNQUdFX0ZPUk1BVF9KUEVHEAESFAoQSU1BR0VfRk9STUFUX1BORxACEhQKEElNQUdFX0ZPUk1BVF9SQVcQAyrdAgoSQ29udHJvbENvbW1hbmRUeXBlEiQKIENPTlRST0xfQ09NTUFORF9UWVBFX1VOU1BFQ0lGSUVEEAASJQohQ09OVFJPTF9DT01NQU5EX1RZUEVfUFRaX0FCU09MVVRFEAESJQohQ09OVFJPTF9DT01NQU5EX1RZUEVfUFRaX1JFTEFUSVZFEAISJwojQ09OVFJPTF9DT01NQU5EX1RZUEVfUFRaX0NPTlRJTlVPVVMQAxIhCh1DT05UUk9MX0NPTU1BTkRfVFlQRV9QVFpfU1RPUBAEEiQKIENPTlRST0xfQ09NTUFORF9UWVBFX1BSRVNFVF9HT1RPEAUSIwofQ09OVFJPTF9DT01NQU5EX1RZUEVfUFJFU0VUX1NFVBAGEh4KGkNPTlRST0xfQ09NTUFORF9UWVBFX0ZPQ1VTEAcSHAoYQ09OVFJPTF9DT01NQU5EX1RZUEVfQVJNEAgylAgKCUZEU2VydmljZRJeChVFeGVjdXRlQ2luZW1hdG9ncmFwaHkSIC52MS5FeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXF1ZXN0GiEudjEuRXhlY3V0ZUNpbmVtYXRvZ3JhcGh5UmVzcG9uc2UiABKTAQogU3RyZWFtQ2luZW1hdG9ncmFwaHlJbnN0cnVjdGlvbnMSNC52MS5GRFNlcnZpY2VTdHJlYW1DaW5lbWF0b2dyYXBoeUluc3RydWN0aW9uc1JlcXVlc3QaNS52MS5GRFNlcnZpY2VTdHJlYW1DaW5lbWF0b2dyYXBoeUluc3RydWN0aW9uc1Jlc3BvbnNlIgAwARJDCgxQcm9jZXNzSW1hZ2USFy52MS5Qcm9jZXNzSW1hZ2VSZXF1ZXN0GhgudjEuUHJvY2Vzc0ltYWdlUmVzcG9uc2UiABJbChRTdGFydFBhdHRlcm5NYXRjaGluZxIfLnYxLlN0YXJ0UGF0dGVybk1hdGNoaW5nUmVxdWVzdBogLnYxLlN0YXJ0UGF0dGVybk1hdGNoaW5nUmVzcG9uc2UiABJYChNTdG9wUGF0dGVybk1hdGNoaW5nEh4udjEuU3RvcFBhdHRlcm5NYXRjaGluZ1JlcXVlc3QaHy52MS5TdG9wUGF0dGVybk1hdGNoaW5nUmVzcG9uc2UiABJsChlTdHJlYW1QYXR0ZXJuTWF0Y2hSZXN1bHRzEiQudjEuU3RyZWFtUGF0dGVybk1hdGNoUmVzdWx0c1JlcXVlc3QaJS52MS5TdHJlYW1QYXR0ZXJuTWF0Y2hSZXN1bHRzUmVzcG9uc2UiADABEk8KEENhbGN1bGF0ZUZyYW1pbmcSGy52MS5DYWxjdWxhdGVGcmFtaW5nUmVxdWVzdBocLnYxLkNhbGN1bGF0ZUZyYW1pbmdSZXNwb25zZSIAElUKElNlbmRDb250cm9sQ29tbWFuZBIdLnYxLlNlbmRDb250cm9sQ29tbWFuZFJlcXVlc3QaHi52MS5TZW5kQ29udHJvbENvbW1hbmRSZXNwb25zZSIAEmAKFVN0cmVhbUNvbnRyb2xDb21tYW5kcxIgLnYxLlN0cmVhbUNvbnRyb2xDb21tYW5kc1JlcXVlc3QaIS52MS5TdHJlYW1Db250cm9sQ29tbWFuZHNSZXNwb25zZSIAMAESUgoRUmVwb3J0Q2FtZXJhU3RhdGUSHC52MS5SZXBvcnRDYW1lcmFTdGF0ZVJlcXVlc3QaHS52MS5SZXBvcnRDYW1lcmFTdGF0ZVJlc3BvbnNlIgASSQoOR2V0Q2FtZXJhU3RhdGUSGS52MS5HZXRDYW1lcmFTdGF0ZVJlcXVlc3QaGi52MS5HZXRDYW1lcmFTdGF0ZVJlc3BvbnNlIgBCRlpEZ2l0aHViLmNvbS9hbnlmbGQvdmlzdHJhLW9wZXJhdGlvbi1jb250cm9sLXJvb20vZ2VuL3Byb3RvL3YxO3Byb3RvdjFiBnByb3RvMw", [file_v1_cinematography]);
+  fileDesc("ChN2MS9mZF9zZXJ2aWNlLnByb3RvEgJ2MSJSChxFeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXF1ZXN0EjIKC2luc3RydWN0aW9uGAEgASgLMh0udjEuQ2luZW1hdG9ncmFwaHlJbnN0cnVjdGlvbiJJCh1FeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXNwb25zZRIoCgZyZXN1bHQYASABKAsyGC52MS5DaW5lbWF0b2dyYXBoeVJlc3VsdCJJCjBGRFNlcnZpY2VTdHJlYW1DaW5lbWF0b2dyYXBoeUluc3RydWN0aW9uc1JlcXVlc3QSFQoNc291cmNlX2ZpbHRlchgBIAMoCSKNAQoxRkRTZXJ2aWNlU3RyZWFtQ2luZW1hdG9ncmFwaHlJbnN0cnVjdGlvbnNSZXNwb25zZRIyCgtpbnN0cnVjdGlvbhgBIAEoCzIdLnYxLkNpbmVtYXRvZ3JhcGh5SW5zdHJ1Y3Rpb24SDgoGc291cmNlGAIgASgJEhQKDHRpbWVzdGFtcF9tcxgDIAEoAyJ8CglJbWFnZURhdGESHwoGZm9ybWF0GAEgASgOMg8udjEuSW1hZ2VGb3JtYXQSDAoEZGF0YRgCIAEoDBILCgN1cmwYAyABKAkSDQoFd2lkdGgYBCABKA0SDgoGaGVpZ2h0GAUgASgNEhQKDHRpbWVzdGFtcF9tcxgGIAEoAyJZChNQcm9jZXNzSW1hZ2VSZXF1ZXN0EhwKBWltYWdlGAEgASgLMg0udjEuSW1hZ2VEYXRhEiQKD3RhcmdldF9zdWJqZWN0cxgCIAMoCzILLnYxLlN1YmplY3QiYgoUUHJvY2Vzc0ltYWdlUmVzcG9uc2USLgoRZGV0ZWN0ZWRfc3ViamVjdHMYASADKAsyEy52MS5EZXRlY3RlZFN1YmplY3QSGgoScHJvY2Vzc2luZ190aW1lX21zGAIgASgNImoKD0RldGVjdGVkU3ViamVjdBIcCgdzdWJqZWN0GAEgASgLMgsudjEuU3ViamVjdBISCgpjb25maWRlbmNlGAIgASgCEiUKDGRldGVjdGVkX2JveBgDIAEoCzIPLnYxLkJvdW5kaW5nQm94ImsKG1N0YXJ0UGF0dGVybk1hdGNoaW5nUmVxdWVzdBIRCgljYW1lcmFfaWQYASABKAkSJAoPdGFyZ2V0X3N1YmplY3RzGAIgAygLMgsudjEuU3ViamVjdBITCgtpbnRlcnZhbF9tcxgDIAEoDSJDChxTdGFydFBhdHRlcm5NYXRjaGluZ1Jlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSEgoKc2Vzc2lvbl9pZBgCIAEoCSIwChpTdG9wUGF0dGVybk1hdGNoaW5nUmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJIi4KG1N0b3BQYXR0ZXJuTWF0Y2hpbmdSZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIIjYKIFN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHNSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkikAEKIVN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHNSZXNwb25zZRISCgpzZXNzaW9uX2lkGAEgASgJEhEKCWNhbWVyYV9pZBgCIAEoCRIuChFkZXRlY3RlZF9zdWJqZWN0cxgDIAMoCzITLnYxLkRldGVjdGVkU3ViamVjdBIUCgx0aW1lc3RhbXBfbXMYBCABKAMi0QEKF0NhbGN1bGF0ZUZyYW1pbmdSZXF1ZXN0EhEKCWNhbWVyYV9pZBgBIAEoCRImCgtjdXJyZW50X3B0ehgCIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSJgoQdGFyZ2V0X3Nob3RfdHlwZRgDIAEoDjIMLnYxLlNob3RUeXBlEiwKD3RhcmdldF9zdWJqZWN0cxgEIAMoCzITLnYxLkRldGVjdGVkU3ViamVjdBIlCgx0YXJnZXRfYW5nbGUYBSABKA4yDy52MS5DYW1lcmFBbmdsZSKNAQoYQ2FsY3VsYXRlRnJhbWluZ1Jlc3BvbnNlEikKDmNhbGN1bGF0ZWRfcHR6GAEgASgLMhEudjEuUFRaUGFyYW1ldGVycxIeChZlc3RpbWF0ZWRfbW92ZV90aW1lX21zGAIgASgNEg8KB3N1Y2Nlc3MYAyABKAgSFQoNZXJyb3JfbWVzc2FnZRgEIAEoCSLzAQoOQ29udHJvbENvbW1hbmQSEgoKY29tbWFuZF9pZBgBIAEoCRIRCgljYW1lcmFfaWQYAiABKAkSJAoEdHlwZRgDIAEoDjIWLnYxLkNvbnRyb2xDb21tYW5kVHlwZRIpCg5wdHpfcGFyYW1ldGVycxgEIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSFQoNcHJlc2V0X251bWJlchgFIAEoDRITCgtmb2N1c192YWx1ZRgGIAEoAhIpCg5hcm1fcGFyYW1ldGVycxgHIAEoCzIRLnYxLkFybVBhcmFtZXRlcnMSEgoKdGltZW91dF9tcxgIIAEoDSI0Cg1Bcm1QYXJhbWV0ZXJzEhQKDGpvaW50X2FuZ2xlcxgBIAMoAhINCgVzcGVlZBgCIAEoAiKXAQoUQ29udHJvbENvbW1hbmRSZXN1bHQSEgoKY29tbWFuZF9pZBgBIAEoCRIPCgdzdWNjZXNzGAIgASgIEhUKDWVycm9yX21lc3NhZ2UYAyABKAkSKAoNcmVzdWx0aW5nX3B0ehgEIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSGQoRZXhlY3V0aW9uX3RpbWVfbXMYBSABKA0izQEKHFN0cmVhbUNvbnRyb2xDb21tYW5kc1JlcXVlc3QSLQoEaW5pdBgBIAEoCzIdLnYxLlN0cmVhbUNvbnRyb2xDb21tYW5kc0luaXRIABIlCgdjb21tYW5kGAIgASgLMhIudjEuQ29udHJvbENvbW1hbmRIABIqCgZyZXN1bHQYAyABKAsyGC52MS5Db250cm9sQ29tbWFuZFJlc3VsdEgAEiAKBXN0YXRlGAQgASgLMg8udjEuQ2FtZXJhU3RhdGVIAEIJCgdtZXNzYWdlIi4KGVN0cmVhbUNvbnRyb2xDb21tYW5kc0luaXQSEQoJY2FtZXJhX2lkGAEgASgJIrUBCh1TdHJlYW1Db250cm9sQ29tbWFuZHNSZXNwb25zZRIjCgdjb21tYW5kGAEgASgLMhIudjEuQ29udHJvbENvbW1hbmQSKAoGcmVzdWx0GAIgASgLMhgudjEuQ29udHJvbENvbW1hbmRSZXN1bHQSLwoGc3RhdHVzGAMgASgLMh8udjEuU3RyZWFtQ29udHJvbENvbW1hbmRzU3RhdHVzEhQKDHRpbWVzdGFtcF9tcxgEIAEoAyJBChtTdHJlYW1Db250cm9sQ29tbWFuZHNTdGF0dXMSEQoJY29ubmVjdGVkGAEgASgIEg8KB21lc3NhZ2UYAiABKAki1QEKC0NhbWVyYVN0YXRlEhEKCWNhbWVyYV9pZBgBIAEoCRImCgtjdXJyZW50X3B0ehgCIAEoCzIRLnYxLlBUWlBhcmFtZXRlcnMSEQoJaXNfbW92aW5nGAMgASgIEhEKCWhhc19lcnJvchgEIAEoCBIVCg1lcnJvcl9tZXNzYWdlGAUgASgJEhUKDWN1cnJlbnRfZm9jdXMYBiABKAISFQoNdXBkYXRlZF9hdF9tcxgHIAEoAxIgCgZzdGF0dXMYCCABKA4yEC52MS5DYW1lcmFTdGF0dXMqbgoLSW1hZ2VGb3JtYXQSHAoYSU1BR0VfRk9STUFUX1VOU1BFQ0lGSUVEEAASFQoRSU1BR0VfRk9STUFUX0pQRUcQARIUChBJTUFHRV9GT1JNQVRfUE5HEAISFAoQSU1BR0VfRk9STUFUX1JBVxADKt0CChJDb250cm9sQ29tbWFuZFR5cGUSJAogQ09OVFJPTF9DT01NQU5EX1RZUEVfVU5TUEVDSUZJRUQQABIlCiFDT05UUk9MX0NPTU1BTkRfVFlQRV9QVFpfQUJTT0xVVEUQARIlCiFDT05UUk9MX0NPTU1BTkRfVFlQRV9QVFpfUkVMQVRJVkUQAhInCiNDT05UUk9MX0NPTU1BTkRfVFlQRV9QVFpfQ09OVElOVU9VUxADEiEKHUNPTlRST0xfQ09NTUFORF9UWVBFX1BUWl9TVE9QEAQSJAogQ09OVFJPTF9DT01NQU5EX1RZUEVfUFJFU0VUX0dPVE8QBRIjCh9DT05UUk9MX0NPTU1BTkRfVFlQRV9QUkVTRVRfU0VUEAYSHgoaQ09OVFJPTF9DT01NQU5EX1RZUEVfRk9DVVMQBxIcChhDT05UUk9MX0NPTU1BTkRfVFlQRV9BUk0QCDKcBgoJRkRTZXJ2aWNlEl4KFUV4ZWN1dGVDaW5lbWF0b2dyYXBoeRIgLnYxLkV4ZWN1dGVDaW5lbWF0b2dyYXBoeVJlcXVlc3QaIS52MS5FeGVjdXRlQ2luZW1hdG9ncmFwaHlSZXNwb25zZSIAEpMBCiBTdHJlYW1DaW5lbWF0b2dyYXBoeUluc3RydWN0aW9ucxI0LnYxLkZEU2VydmljZVN0cmVhbUNpbmVtYXRvZ3JhcGh5SW5zdHJ1Y3Rpb25zUmVxdWVzdBo1LnYxLkZEU2VydmljZVN0cmVhbUNpbmVtYXRvZ3JhcGh5SW5zdHJ1Y3Rpb25zUmVzcG9uc2UiADABEkMKDFByb2Nlc3NJbWFnZRIXLnYxLlByb2Nlc3NJbWFnZVJlcXVlc3QaGC52MS5Qcm9jZXNzSW1hZ2VSZXNwb25zZSIAElsKFFN0YXJ0UGF0dGVybk1hdGNoaW5nEh8udjEuU3RhcnRQYXR0ZXJuTWF0Y2hpbmdSZXF1ZXN0GiAudjEuU3RhcnRQYXR0ZXJuTWF0Y2hpbmdSZXNwb25zZSIAElgKE1N0b3BQYXR0ZXJuTWF0Y2hpbmcSHi52MS5TdG9wUGF0dGVybk1hdGNoaW5nUmVxdWVzdBofLnYxLlN0b3BQYXR0ZXJuTWF0Y2hpbmdSZXNwb25zZSIAEmwKGVN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHMSJC52MS5TdHJlYW1QYXR0ZXJuTWF0Y2hSZXN1bHRzUmVxdWVzdBolLnYxLlN0cmVhbVBhdHRlcm5NYXRjaFJlc3VsdHNSZXNwb25zZSIAMAESTwoQQ2FsY3VsYXRlRnJhbWluZxIbLnYxLkNhbGN1bGF0ZUZyYW1pbmdSZXF1ZXN0GhwudjEuQ2FsY3VsYXRlRnJhbWluZ1Jlc3BvbnNlIgASXgoVU3RyZWFtQ29udHJvbENvbW1hbmRzEiAudjEuU3RyZWFtQ29udHJvbENvbW1hbmRzUmVxdWVzdBohLnYxLlN0cmVhbUNvbnRyb2xDb21tYW5kc1Jlc3BvbnNlIgBCRlpEZ2l0aHViLmNvbS9hbnlmbGQvdmlzdHJhLW9wZXJhdGlvbi1jb250cm9sLXJvb20vZ2VuL3Byb3RvL3YxO3Byb3RvdjFiBnByb3RvMw", [file_v1_cinematography, file_v1_cr_service]);
 
 /**
  * @generated from message v1.ExecuteCinematographyRequest
@@ -596,47 +598,48 @@ export const ControlCommandResultSchema: GenMessage<ControlCommandResult> = /*@_
   messageDesc(file_v1_fd_service, 18);
 
 /**
- * @generated from message v1.SendControlCommandRequest
- */
-export type SendControlCommandRequest = Message<"v1.SendControlCommandRequest"> & {
-  /**
-   * @generated from field: v1.ControlCommand command = 1;
-   */
-  command?: ControlCommand;
-};
-
-/**
- * Describes the message v1.SendControlCommandRequest.
- * Use `create(SendControlCommandRequestSchema)` to create a new message.
- */
-export const SendControlCommandRequestSchema: GenMessage<SendControlCommandRequest> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 19);
-
-/**
- * @generated from message v1.SendControlCommandResponse
- */
-export type SendControlCommandResponse = Message<"v1.SendControlCommandResponse"> & {
-  /**
-   * @generated from field: v1.ControlCommandResult result = 1;
-   */
-  result?: ControlCommandResult;
-};
-
-/**
- * Describes the message v1.SendControlCommandResponse.
- * Use `create(SendControlCommandResponseSchema)` to create a new message.
- */
-export const SendControlCommandResponseSchema: GenMessage<SendControlCommandResponse> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 20);
-
-/**
  * @generated from message v1.StreamControlCommandsRequest
  */
 export type StreamControlCommandsRequest = Message<"v1.StreamControlCommandsRequest"> & {
   /**
-   * @generated from field: string camera_id = 1;
+   * 最初のポーリング呼び出し時の初期化情報や、
+   * コマンド・結果・状態の送信に使用されるメッセージ
+   *
+   * @generated from oneof v1.StreamControlCommandsRequest.message
    */
-  cameraId: string;
+  message: {
+    /**
+     * 最初のポーリング呼び出し時の初期化（最初のメッセージで必須）
+     *
+     * @generated from field: v1.StreamControlCommandsInit init = 1;
+     */
+    value: StreamControlCommandsInit;
+    case: "init";
+  } | {
+    /**
+     * コマンドの送信（クライアント→サーバー）
+     *
+     * @generated from field: v1.ControlCommand command = 2;
+     */
+    value: ControlCommand;
+    case: "command";
+  } | {
+    /**
+     * コマンド実行結果の報告（クライアント→サーバー）
+     *
+     * @generated from field: v1.ControlCommandResult result = 3;
+     */
+    value: ControlCommandResult;
+    case: "result";
+  } | {
+    /**
+     * カメラ状態の報告（クライアント→サーバー）
+     *
+     * @generated from field: v1.CameraState state = 4;
+     */
+    value: CameraState;
+    case: "state";
+  } | { case: undefined; value?: undefined };
 };
 
 /**
@@ -644,19 +647,52 @@ export type StreamControlCommandsRequest = Message<"v1.StreamControlCommandsRequ
  * Use `create(StreamControlCommandsRequestSchema)` to create a new message.
  */
 export const StreamControlCommandsRequestSchema: GenMessage<StreamControlCommandsRequest> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 21);
+  messageDesc(file_v1_fd_service, 19);
+
+/**
+ * @generated from message v1.StreamControlCommandsInit
+ */
+export type StreamControlCommandsInit = Message<"v1.StreamControlCommandsInit"> & {
+  /**
+   * @generated from field: string camera_id = 1;
+   */
+  cameraId: string;
+};
+
+/**
+ * Describes the message v1.StreamControlCommandsInit.
+ * Use `create(StreamControlCommandsInitSchema)` to create a new message.
+ */
+export const StreamControlCommandsInitSchema: GenMessage<StreamControlCommandsInit> = /*@__PURE__*/
+  messageDesc(file_v1_fd_service, 20);
 
 /**
  * @generated from message v1.StreamControlCommandsResponse
  */
 export type StreamControlCommandsResponse = Message<"v1.StreamControlCommandsResponse"> & {
   /**
+   * コマンドの配信（サーバー→クライアント）
+   *
    * @generated from field: v1.ControlCommand command = 1;
    */
   command?: ControlCommand;
 
   /**
-   * @generated from field: int64 timestamp_ms = 2;
+   * コマンド実行結果の返却（サーバー→クライアント）
+   *
+   * @generated from field: v1.ControlCommandResult result = 2;
+   */
+  result?: ControlCommandResult;
+
+  /**
+   * ポーリングチャネル状態の通知
+   *
+   * @generated from field: v1.StreamControlCommandsStatus status = 3;
+   */
+  status?: StreamControlCommandsStatus;
+
+  /**
+   * @generated from field: int64 timestamp_ms = 4;
    */
   timestampMs: bigint;
 };
@@ -666,6 +702,28 @@ export type StreamControlCommandsResponse = Message<"v1.StreamControlCommandsRes
  * Use `create(StreamControlCommandsResponseSchema)` to create a new message.
  */
 export const StreamControlCommandsResponseSchema: GenMessage<StreamControlCommandsResponse> = /*@__PURE__*/
+  messageDesc(file_v1_fd_service, 21);
+
+/**
+ * @generated from message v1.StreamControlCommandsStatus
+ */
+export type StreamControlCommandsStatus = Message<"v1.StreamControlCommandsStatus"> & {
+  /**
+   * @generated from field: bool connected = 1;
+   */
+  connected: boolean;
+
+  /**
+   * @generated from field: string message = 2;
+   */
+  message: string;
+};
+
+/**
+ * Describes the message v1.StreamControlCommandsStatus.
+ * Use `create(StreamControlCommandsStatusSchema)` to create a new message.
+ */
+export const StreamControlCommandsStatusSchema: GenMessage<StreamControlCommandsStatus> = /*@__PURE__*/
   messageDesc(file_v1_fd_service, 22);
 
 /**
@@ -718,6 +776,13 @@ export type CameraState = Message<"v1.CameraState"> & {
    * @generated from field: int64 updated_at_ms = 7;
    */
   updatedAtMs: bigint;
+
+  /**
+   * カメラ接続・動作ステータス
+   *
+   * @generated from field: v1.CameraStatus status = 8;
+   */
+  status: CameraStatus;
 };
 
 /**
@@ -726,74 +791,6 @@ export type CameraState = Message<"v1.CameraState"> & {
  */
 export const CameraStateSchema: GenMessage<CameraState> = /*@__PURE__*/
   messageDesc(file_v1_fd_service, 23);
-
-/**
- * @generated from message v1.ReportCameraStateRequest
- */
-export type ReportCameraStateRequest = Message<"v1.ReportCameraStateRequest"> & {
-  /**
-   * @generated from field: v1.CameraState state = 1;
-   */
-  state?: CameraState;
-};
-
-/**
- * Describes the message v1.ReportCameraStateRequest.
- * Use `create(ReportCameraStateRequestSchema)` to create a new message.
- */
-export const ReportCameraStateRequestSchema: GenMessage<ReportCameraStateRequest> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 24);
-
-/**
- * @generated from message v1.ReportCameraStateResponse
- */
-export type ReportCameraStateResponse = Message<"v1.ReportCameraStateResponse"> & {
-  /**
-   * @generated from field: bool acknowledged = 1;
-   */
-  acknowledged: boolean;
-};
-
-/**
- * Describes the message v1.ReportCameraStateResponse.
- * Use `create(ReportCameraStateResponseSchema)` to create a new message.
- */
-export const ReportCameraStateResponseSchema: GenMessage<ReportCameraStateResponse> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 25);
-
-/**
- * @generated from message v1.GetCameraStateRequest
- */
-export type GetCameraStateRequest = Message<"v1.GetCameraStateRequest"> & {
-  /**
-   * @generated from field: string camera_id = 1;
-   */
-  cameraId: string;
-};
-
-/**
- * Describes the message v1.GetCameraStateRequest.
- * Use `create(GetCameraStateRequestSchema)` to create a new message.
- */
-export const GetCameraStateRequestSchema: GenMessage<GetCameraStateRequest> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 26);
-
-/**
- * @generated from message v1.GetCameraStateResponse
- */
-export type GetCameraStateResponse = Message<"v1.GetCameraStateResponse"> & {
-  /**
-   * @generated from field: v1.CameraState state = 1;
-   */
-  state?: CameraState;
-};
-
-/**
- * Describes the message v1.GetCameraStateResponse.
- * Use `create(GetCameraStateResponseSchema)` to create a new message.
- */
-export const GetCameraStateResponseSchema: GenMessage<GetCameraStateResponse> = /*@__PURE__*/
-  messageDesc(file_v1_fd_service, 27);
 
 /**
  * @generated from enum v1.ImageFormat
@@ -969,38 +966,12 @@ export const FDService: GenService<{
   /**
    * CO への制御コマンド
    *
-   * @generated from rpc v1.FDService.SendControlCommand
-   */
-  sendControlCommand: {
-    methodKind: "unary";
-    input: typeof SendControlCommandRequestSchema;
-    output: typeof SendControlCommandResponseSchema;
-  },
-  /**
    * @generated from rpc v1.FDService.StreamControlCommands
    */
   streamControlCommands: {
-    methodKind: "server_streaming";
+    methodKind: "unary";
     input: typeof StreamControlCommandsRequestSchema;
     output: typeof StreamControlCommandsResponseSchema;
-  },
-  /**
-   * カメラ状態の報告
-   *
-   * @generated from rpc v1.FDService.ReportCameraState
-   */
-  reportCameraState: {
-    methodKind: "unary";
-    input: typeof ReportCameraStateRequestSchema;
-    output: typeof ReportCameraStateResponseSchema;
-  },
-  /**
-   * @generated from rpc v1.FDService.GetCameraState
-   */
-  getCameraState: {
-    methodKind: "unary";
-    input: typeof GetCameraStateRequestSchema;
-    output: typeof GetCameraStateResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_v1_fd_service, 0);

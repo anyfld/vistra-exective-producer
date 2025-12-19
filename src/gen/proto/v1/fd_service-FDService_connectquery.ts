@@ -38,18 +38,6 @@ export const calculateFraming = FDService.method.calculateFraming;
 /**
  * CO への制御コマンド
  *
- * @generated from rpc v1.FDService.SendControlCommand
+ * @generated from rpc v1.FDService.StreamControlCommands
  */
-export const sendControlCommand = FDService.method.sendControlCommand;
-
-/**
- * カメラ状態の報告
- *
- * @generated from rpc v1.FDService.ReportCameraState
- */
-export const reportCameraState = FDService.method.reportCameraState;
-
-/**
- * @generated from rpc v1.FDService.GetCameraState
- */
-export const getCameraState = FDService.method.getCameraState;
+export const streamControlCommands = FDService.method.streamControlCommands;

@@ -17,18 +17,21 @@ import Home from "./Home"
 
 const mockCameras = [
   {
+    id: "cam-001",
     name: "camera-1",
     type: "PTZ" as const,
     mode: "Autonomous" as const,
     connection: "Reachable" as const,
   },
   {
+    id: "cam-002",
     name: "camera-2",
     type: "Arm" as const,
     mode: "LightWeight" as const,
     connection: "Reachable" as const,
   },
   {
+    id: "cam-003",
     name: "camera-3",
     type: "PTZ" as const,
     mode: "Autonomous" as const,
@@ -223,7 +226,7 @@ describe("Home", () => {
     )
 
     await waitFor(() => {
-      expect(mockedNavigate).toHaveBeenCalledWith(`/${targetCamera.name}`)
+      expect(mockedNavigate).toHaveBeenCalledWith(`/${targetCamera.id}`)
     })
   })
 })

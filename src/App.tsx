@@ -39,7 +39,7 @@ function App() {
       >
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/:name" element={<CameraPage />} />
+          <Route path="/:cameraId" element={<CameraPage />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/monitor" element={<Monitor />} />
         </Routes>

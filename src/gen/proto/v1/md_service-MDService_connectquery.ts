@@ -65,3 +65,8 @@ export const getStreamingStatus = MDService.method.getStreamingStatus;
  * @generated from rpc v1.MDService.SendToLLM
  */
 export const sendToLLM = MDService.method.sendToLLM;
+
+/**
+ * @generated from rpc v1.MDService.ReceiveFromLLM
+ */
+export const receiveFromLLM = MDService.method.receiveFromLLM;

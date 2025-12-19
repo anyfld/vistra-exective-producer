@@ -22,10 +22,12 @@ export function mapProtoCamera(protoCamera: ProtoCamera): Camera {
   const type: Camera["type"] = (protoCamera.metadata["type"] as Camera["type"]) || "PTZ"
 
   return {
+    id: protoCamera.id,
     name: protoCamera.name,
     type,
     mode,
     connection,
+    webrtcConnectionName: protoCamera.webrtcConnectionName ?? "",
   }
 }
 

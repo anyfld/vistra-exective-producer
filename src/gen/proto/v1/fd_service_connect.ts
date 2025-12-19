@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, GetCameraStateRequest, GetCameraStateResponse, ProcessImageRequest, ProcessImageResponse, ReportCameraStateRequest, ReportCameraStateResponse, SendControlCommandRequest, SendControlCommandResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamControlCommandsRequest, StreamControlCommandsResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
+import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, ProcessImageRequest, ProcessImageResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamControlCommandsRequest, StreamControlCommandsResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -84,41 +84,12 @@ export const FDService = {
     /**
      * CO への制御コマンド
      *
-     * @generated from rpc v1.FDService.SendControlCommand
-     */
-    sendControlCommand: {
-      name: "SendControlCommand",
-      I: SendControlCommandRequest,
-      O: SendControlCommandResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc v1.FDService.StreamControlCommands
      */
     streamControlCommands: {
       name: "StreamControlCommands",
       I: StreamControlCommandsRequest,
       O: StreamControlCommandsResponse,
-      kind: MethodKind.ServerStreaming,
-    },
-    /**
-     * カメラ状態の報告
-     *
-     * @generated from rpc v1.FDService.ReportCameraState
-     */
-    reportCameraState: {
-      name: "ReportCameraState",
-      I: ReportCameraStateRequest,
-      O: ReportCameraStateResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc v1.FDService.GetCameraState
-     */
-    getCameraState: {
-      name: "GetCameraState",
-      I: GetCameraStateRequest,
-      O: GetCameraStateResponse,
       kind: MethodKind.Unary,
     },
   }
