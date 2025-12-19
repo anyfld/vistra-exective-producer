@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, ProcessImageRequest, ProcessImageResponse, SendControlCommandRequest, SendControlCommandResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamControlCommandsRequest, StreamControlCommandsResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
+import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, ProcessImageRequest, ProcessImageResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamControlCommandsRequest, StreamControlCommandsResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -84,22 +84,13 @@ export const FDService = {
     /**
      * CO への制御コマンド
      *
-     * @generated from rpc v1.FDService.SendControlCommand
-     */
-    sendControlCommand: {
-      name: "SendControlCommand",
-      I: SendControlCommandRequest,
-      O: SendControlCommandResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc v1.FDService.StreamControlCommands
      */
     streamControlCommands: {
       name: "StreamControlCommands",
       I: StreamControlCommandsRequest,
       O: StreamControlCommandsResponse,
-      kind: MethodKind.BiDiStreaming,
+      kind: MethodKind.Unary,
     },
   }
 } as const;

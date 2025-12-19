@@ -38,6 +38,6 @@ export const calculateFraming = FDService.method.calculateFraming;
 /**
  * CO への制御コマンド
  *
- * @generated from rpc v1.FDService.SendControlCommand
+ * @generated from rpc v1.FDService.StreamControlCommands
  */
-export const sendControlCommand = FDService.method.sendControlCommand;
+export const streamControlCommands = FDService.method.streamControlCommands;
