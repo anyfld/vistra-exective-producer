@@ -99,7 +99,7 @@ export const FDService = {
       name: "StreamControlCommands",
       I: StreamControlCommandsRequest,
       O: StreamControlCommandsResponse,
-      kind: MethodKind.ServerStreaming,
+      kind: MethodKind.BiDiStreaming,
     },
     /**
      * カメラ状態の報告
