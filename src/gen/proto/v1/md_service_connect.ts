@@ -139,7 +139,7 @@ export const MDService = {
       name: "ReceiveFromLLM",
       I: ReceiveFromLLMRequest,
       O: ReceiveFromLLMResponse,
-      kind: MethodKind.ServerStreaming,
+      kind: MethodKind.Unary,
     },
   }
 } as const;
