@@ -5,12 +5,14 @@ import type { Camera } from "@/types/camera"
 
 const dummyData: Camera[] = [
   {
+    id: "sample-1",
     name: "Sample Camera 1",
     type: "PTZ",
     mode: "Autonomous",
     connection: "Reachable",
   },
   {
+    id: "sample-2",
     name: "Sample Camera 2",
     type: "PTZ",
     mode: "Autonomous",
@@ -37,6 +39,7 @@ export async function getStreams(): Promise<Camera[]> {
 
     return Object.keys(streamResponse).map((stream) => {
       return {
+        id: stream,
         name: stream,
         type: "PTZ",
         mode: "Autonomous",

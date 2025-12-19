@@ -63,7 +63,7 @@ function CameraCard({ camera }: { camera: Camera }) {
   const navigate = useNavigate()
 
   const handleClick = () => {
-    navigate(`/${camera.name}`)
+    navigate(`/${camera.id}`)
   }
 
   const isOnline = camera.connection === "Reachable"
