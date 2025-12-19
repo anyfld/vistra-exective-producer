@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useRef, useCallback } from "react"
+import { useMutation } from "@connectrpc/connect-query"
 import { useParams, useNavigate } from "react-router-dom"
 import { Box, Typography, Button, IconButton, Paper, Chip, alpha } from "@mui/material"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
@@ -14,6 +15,9 @@ import SpeedIcon from "@mui/icons-material/Speed"
 import type { Mode } from "@/types/camera"
 import { colors } from "@/theme"
 import WebRTCPlayer from "@/components/WebRTCPlayer"
+import { FDService } from "@/gen/proto/v1/fd_service_pb"
+import { ControlCommandType } from "@/gen/proto/v1/fd_service_pb"
+import type { PTZParameters } from "@/gen/proto/v1/cinematography_pb"
 
 // メトリクス型
 type MetricData = {
@@ -99,16 +103,28 @@ function ControlButton({
   icon,
   label,
   onClick,
+  onPressStart,
+  onPressEnd,
+  disabled,
 }: {
   icon: React.ReactNode
   label: string
   onClick?: () => void
+  onPressStart?: () => void
+  onPressEnd?: () => void
+  disabled?: boolean
 }) {
   return (
     <IconButton
       color="primary"
       size="medium"
       onClick={onClick}
+      onMouseDown={onPressStart}
+      onMouseUp={onPressEnd}
+      onMouseLeave={onPressEnd}
+      onTouchStart={onPressStart}
+      onTouchEnd={onPressEnd}
+      disabled={disabled}
       sx={{
         backgroundColor: alpha(colors.primary.main, 0.1),
         border: `1px solid ${alpha(colors.primary.main, 0.2)}`,
@@ -132,6 +148,146 @@ export default function CameraPage() {
   const { name } = useParams<{ name: string }>()
   const navigate = useNavigate()
   const [mode] = useState<Mode>("Autonomous")
+
+  const {
+    mutateAsync: sendCommand,
+    isPending: sending,
+  } = useMutation(FDService.method.streamControlCommands)
+
+  const pressTimerRef = useRef<number | null>(null)
+  const repeatIntervalRef = useRef<number | null>(null)
+
+  const genId = () =>
+    (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2))
+
+  const sendPTZRelative = useCallback(async (delta: Partial<PTZParameters>) => {
+    if (!name) return
+    const command = {
+      commandId: genId(),
+      cameraId: name,
+      type: ControlCommandType.PTZ_RELATIVE,
+      ptzParameters: {
+        pan: delta.pan ?? 0,
+        tilt: delta.tilt ?? 0,
+        zoom: delta.zoom ?? 0,
+        panSpeed: delta.panSpeed ?? 0.6,
+        tiltSpeed: delta.tiltSpeed ?? 0.6,
+        zoomSpeed: delta.zoomSpeed ?? 0.6,
+      },
+      presetNumber: 0,
+      focusValue: 0,
+      timeoutMs: 2000,
+    }
+    try {
+      await sendCommand({ 
+        message: { 
+          case: "command",
+          value: command 
+        } 
+      })
+    } catch (e) {
+      // TODO: surface error to UI if needed
+      // eslint-disable-next-line no-console
+      console.error("Failed to send PTZ command", e)
+    }
+  }, [name, sendCommand])
+
+  const sendPTZContinuous = useCallback(async (velocity: Partial<PTZParameters>) => {
+    if (!name) return
+    const command = {
+      commandId: genId(),
+      cameraId: name,
+      type: ControlCommandType.PTZ_CONTINUOUS,
+      ptzParameters: {
+        pan: 0,
+        tilt: 0,
+        zoom: 0,
+        panSpeed: velocity.panSpeed ?? 0,
+        tiltSpeed: velocity.tiltSpeed ?? 0,
+        zoomSpeed: velocity.zoomSpeed ?? 0,
+      },
+      presetNumber: 0,
+      focusValue: 0,
+      timeoutMs: 3000,
+    }
+    try {
+      await sendCommand({
+        message: {
+          case: "command",
+          value: command,
+        },
+      })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to send PTZ continuous", e)
+    }
+  }, [name, sendCommand])
+
+  const sendPTZStop = useCallback(async () => {
+    if (!name) return
+    const command = {
+      commandId: genId(),
+      cameraId: name,
+      type: ControlCommandType.PTZ_STOP,
+      ptzParameters: {
+        pan: 0,
+        tilt: 0,
+        zoom: 0,
+        panSpeed: 0,
+        tiltSpeed: 0,
+        zoomSpeed: 0,
+      },
+      presetNumber: 0,
+      focusValue: 0,
+      timeoutMs: 1000,
+    }
+    try {
+      await sendCommand({
+        message: {
+          case: "command",
+          value: command,
+        },
+      })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to send PTZ stop", e)
+    }
+  }, [name, sendCommand])
+
+  const handlePressStart = useCallback((delta: Partial<PTZParameters>) => {
+    // 長押し開始: 連続移動の開始を一度だけ送信
+    // 方向は速度の符号で表現
+    sendPTZContinuous({
+      panSpeed: delta.panSpeed,
+      tiltSpeed: delta.tiltSpeed,
+      zoomSpeed: delta.zoomSpeed,
+    })
+
+    // もし端末側が心拍(keep-alive)を必要とするなら、以下の間欠送信を有効化
+    // デフォルトでは送らないが、必要時にはコメントアウト解除
+    // pressTimerRef.current = window.setTimeout(() => {
+    //   repeatIntervalRef.current = window.setInterval(() => {
+    //     sendPTZContinuous({
+    //       panSpeed: delta.panSpeed,
+    //       tiltSpeed: delta.tiltSpeed,
+    //       zoomSpeed: delta.zoomSpeed,
+    //     })
+    //   }, 1000)
+    // }, 1000)
+  }, [sendPTZContinuous])
+
+  const handlePressEnd = useCallback(() => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current)
+      pressTimerRef.current = null
+    }
+    if (repeatIntervalRef.current) {
+      clearInterval(repeatIntervalRef.current)
+      repeatIntervalRef.current = null
+    }
+    // 長押し終了: 停止コマンド送信
+    sendPTZStop()
+  }, [sendPTZStop])
 
   const handleBack = () => {
     navigate("/")
@@ -364,13 +520,37 @@ export default function CameraPage() {
               }}
             >
               <Box />
-              <ControlButton icon={<ArrowUpwardIcon />} label="視野を上に移動" />
+              <ControlButton
+                icon={<ArrowUpwardIcon />}
+                label="視野を上に移動"
+                onPressStart={() => handlePressStart({ tiltSpeed: +0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
               <Box />
-              <ControlButton icon={<ArrowBackIosNewIcon />} label="視野を左に移動" />
+              <ControlButton
+                icon={<ArrowBackIosNewIcon />}
+                label="視野を左に移動"
+                onPressStart={() => handlePressStart({ panSpeed: -0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
               <Box />
-              <ControlButton icon={<ArrowForwardIosIcon />} label="視野を右に移動" />
+              <ControlButton
+                icon={<ArrowForwardIosIcon />}
+                label="視野を右に移動"
+                onPressStart={() => handlePressStart({ panSpeed: +0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
               <Box />
-              <ControlButton icon={<ArrowDownwardIcon />} label="視野を下に移動" />
+              <ControlButton
+                icon={<ArrowDownwardIcon />}
+                label="視野を下に移動"
+                onPressStart={() => handlePressStart({ tiltSpeed: -0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
               <Box />
             </Box>
           </Box>
@@ -388,8 +568,20 @@ export default function CameraPage() {
               Zoom
             </Typography>
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
-              <ControlButton icon={<ZoomInIcon />} label="ズームイン" />
-              <ControlButton icon={<ZoomOutIcon />} label="ズームアウト" />
+              <ControlButton
+                icon={<ZoomInIcon />}
+                label="ズームイン"
+                onPressStart={() => handlePressStart({ zoomSpeed: +0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
+              <ControlButton
+                icon={<ZoomOutIcon />}
+                label="ズームアウト"
+                onPressStart={() => handlePressStart({ zoomSpeed: -0.7 })}
+                onPressEnd={handlePressEnd}
+                disabled={sending}
+              />
             </Box>
           </Box>
 
