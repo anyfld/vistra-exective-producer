@@ -14,7 +14,12 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:1984',
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      // Connect RPC エンドポイント用のプロキシ設定
+      '/v1': {
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
     },

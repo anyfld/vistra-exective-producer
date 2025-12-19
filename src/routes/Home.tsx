@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Box, Typography, Paper, CircularProgress, Alert, Button, Chip, alpha } from "@mui/material"
 import CheckCircleIcon from "@mui/icons-material/CheckCircle"
 import ErrorIcon from "@mui/icons-material/Error"
 import GridViewIcon from "@mui/icons-material/GridView"
 import VideocamIcon from "@mui/icons-material/Videocam"
+import { useQuery } from "@connectrpc/connect-query"
 import type { Camera } from "@/types/camera"
 import { colors } from "@/theme"
-import { getStreams } from "@/lib/streams"
 import WebRTCPlayer from "@/components/WebRTCPlayer"
+import { listCameras } from "@/gen/proto/v1/cd_service-CameraService_connectquery"
+import { mapProtoCameras } from "@/lib/cameraMapper"
 
 // ページヘッダーコンポーネント
 function PageHeader({
@@ -212,34 +213,28 @@ function InfoRow({
   )
 }
 
+// ProtoのCamera型をアプリケーションのCamera型に変換は `mapProtoCameras` を使用
+
 export default function Home() {
-  const [cameras, setCameras] = useState<Camera[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+
+  // Connect Queryを使用してsrc/gen/proto/v1からカメラ映像一覧を取得
+  // EP (Executive Producer) 用のカメラダッシュボード
+  // CameraService.listCameras を使用してカメラ一覧を取得
+  const { data, isLoading, error } = useQuery(listCameras, {
+    masterMfId: "", // 空文字列で全Master MFのカメラを取得
+    modeFilter: [], // フィルタなし
+    statusFilter: [], // フィルタなし
+    pageSize: 100, // 最大100件取得
+    pageToken: "", // 最初のページ
+  })
+
+  const cameras: Camera[] = mapProtoCameras(data?.cameras)
+  const onlineCameras = cameras.filter((c) => c.connection === "Reachable").length
 
   const handleGoToMonitor = () => {
     navigate("/monitor")
   }
-
-  useEffect(() => {
-    const loadStreams = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const streams = await getStreams()
-        setCameras(streams)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load streams")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadStreams()
-  }, [])
-
-  const onlineCameras = cameras.filter((c) => c.connection === "Reachable").length
 
   return (
     <Box
@@ -295,7 +290,26 @@ export default function Home() {
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+          <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+            カメラ一覧の取得に失敗しました
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            <strong>エラー:</strong> {error instanceof Error ? error.message : String(error)}
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: "0.875rem", mb: 1 }}>
+            <strong>API Base URL:</strong> {import.meta.env.VITE_API_BASE_URL || "http://localhost:8080 (default)"}
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: "0.875rem", mb: 1 }}>
+            <strong>開発モード:</strong> {import.meta.env.DEV ? "はい（Viteプロキシ使用）" : "いいえ"}
+          </Typography>
+          <Typography variant="caption" component="div" sx={{ fontSize: "0.75rem", mt: 1, opacity: 0.7 }}>
+            <strong>トラブルシューティング:</strong>
+            <ul style={{ marginTop: "0.5rem", paddingLeft: "1.5rem" }}>
+              <li>バックエンドAPIサーバーが起動しているか確認してください（デフォルト: http://localhost:1984）</li>
+              <li>ブラウザの開発者ツールのネットワークタブでリクエストを確認してください</li>
+              <li>CORS設定が正しいか確認してください</li>
+            </ul>
+          </Typography>
         </Alert>
       )}
 
