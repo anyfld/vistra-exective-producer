@@ -1,6 +1,7 @@
-import { useQuery } from "@connectrpc/connect-query"
+import { useState, useCallback, useEffect, useRef } from "react"
+import { useMutation, useQuery } from "@connectrpc/connect-query"
 import { useParams, useNavigate } from "react-router-dom"
-import { Box, Typography, Button, Paper, Chip, alpha } from "@mui/material"
+import { Box, Typography, Button, Paper, Chip, alpha, IconButton } from "@mui/material"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
@@ -17,6 +18,15 @@ import WebRTCPlayer from "@/components/WebRTCPlayer"
 import { getCamera } from "@/gen/proto/v1/cd_service-CameraService_connectquery"
 import { listAllCameras } from "@/gen/proto/v1/cr_service-CRService_connectquery"
 import { CameraStatus } from "@/gen/proto/v1/cr_service_pb"
+import { sendPTZCommand } from "@/gen/proto/v1/ptz_service-PTZService_connectquery"
+import {
+  PTZOperationType,
+  PTZCommandSchema,
+  RelativeMoveCommandSchema,
+  PTZTranslationSchema,
+  PTZSpeedSchema,
+} from "@/gen/proto/v1/ptz_service_pb"
+import { create } from "@bufbuild/protobuf"
 
 // メトリクス型
 type MetricData = {
@@ -157,6 +167,8 @@ export default function CameraPage() {
   const navigate = useNavigate()
   const [mode] = useState<Mode>("Autonomous")
 
+  const { mutateAsync: sendPTZ, isPending: sending } = useMutation(sendPTZCommand)
+
   const cameraId = cameraIdParam ?? ""
   const { data: cameraData } = useQuery(getCamera, { cameraId }, { enabled: Boolean(cameraId) })
   const cameraName = (cameraData?.camera?.name ?? cameraId) || "camera"
@@ -184,6 +196,108 @@ export default function CameraPage() {
     }
   }, [cameraIdParam, streamingList, navigate])
 
+  // 長押し用のインターバルRef
+  const longPressIntervalRef = useRef<number | null>(null)
+
+  // 相対移動を送信する関数
+  const sendRelativeMove = useCallback(
+    async (panDelta: number, tiltDelta: number, zoomDelta: number) => {
+      if (!cameraId) return
+
+      try {
+        const command = create(PTZCommandSchema, {
+          operationType: PTZOperationType.PTZ_OPERATION_TYPE_RELATIVE_MOVE,
+          command: {
+            case: "relativeMove",
+            value: create(RelativeMoveCommandSchema, {
+              translation: create(PTZTranslationSchema, {
+                panDelta,
+                tiltDelta,
+                zoomDelta,
+              }),
+              speed: create(PTZSpeedSchema, {
+                panSpeed: 0.6,
+                tiltSpeed: 0.6,
+                zoomSpeed: 0.6,
+              }),
+            }),
+          },
+        })
+
+        await sendPTZ({
+          cameraId,
+          command,
+          sourceId: "ep-ui",
+        })
+      } catch (e) {
+        console.error("Failed to send PTZ relative move", e)
+      }
+    },
+    [cameraId, sendPTZ]
+  )
+
+  // 増分制御のステップ（度単位）
+  const PAN_STEP = 10 // degrees
+  const TILT_STEP = 5 // degrees
+  const ZOOM_STEP = 0.5 // zoom units
+
+  const nudgePan = useCallback(
+    (dir: 1 | -1) => {
+      sendRelativeMove(dir * PAN_STEP, 0, 0)
+    },
+    [sendRelativeMove]
+  )
+
+  const nudgeTilt = useCallback(
+    (dir: 1 | -1) => {
+      sendRelativeMove(0, dir * TILT_STEP, 0)
+    },
+    [sendRelativeMove]
+  )
+
+  const nudgeZoom = useCallback(
+    (dir: 1 | -1) => {
+      sendRelativeMove(0, 0, dir * ZOOM_STEP)
+    },
+    [sendRelativeMove]
+  )
+
+  // 長押し用ハンドラー生成関数
+  const createLongPressHandlers = (nudgeFunc: (dir: 1 | -1) => void, dir: 1 | -1) => ({
+    onPressStart: () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
+      }
+      // 最初の操作は即座、その後200ms間隔で繰り返す
+      nudgeFunc(dir)
+      longPressIntervalRef.current = window.setInterval(() => {
+        nudgeFunc(dir)
+      }, 200)
+    },
+    onPressEnd: () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
+      }
+    },
+  })
+
+  // 画面外で指が離れた場合でも確実に停止
+  useEffect(() => {
+    const stop = () => {
+      if (longPressIntervalRef.current) {
+        clearInterval(longPressIntervalRef.current)
+        longPressIntervalRef.current = null
+      }
+    }
+    window.addEventListener("pointerup", stop)
+    window.addEventListener("pointercancel", stop)
+    return () => {
+      window.removeEventListener("pointerup", stop)
+      window.removeEventListener("pointercancel", stop)
+    }
+  }, [])
 
   const handleBack = () => {
     navigate("/")
@@ -419,25 +533,29 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ArrowUpwardIcon />}
                 label="視野を上に移動"
-                disabled
+                {...createLongPressHandlers(nudgeTilt, +1)}
+                disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowBackIosNewIcon />}
                 label="視野を左に移動"
-                disabled
+                {...createLongPressHandlers(nudgePan, -1)}
+                disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowForwardIosIcon />}
                 label="視野を右に移動"
-                disabled
+                {...createLongPressHandlers(nudgePan, +1)}
+                disabled={sending}
               />
               <Box />
               <ControlButton
                 icon={<ArrowDownwardIcon />}
                 label="視野を下に移動"
-                disabled
+                {...createLongPressHandlers(nudgeTilt, -1)}
+                disabled={sending}
               />
               <Box />
             </Box>
@@ -459,12 +577,14 @@ export default function CameraPage() {
               <ControlButton
                 icon={<ZoomInIcon />}
                 label="ズームイン"
-                disabled
+                {...createLongPressHandlers(nudgeZoom, +1)}
+                disabled={sending}
               />
               <ControlButton
                 icon={<ZoomOutIcon />}
                 label="ズームアウト"
-                disabled
+                {...createLongPressHandlers(nudgeZoom, -1)}
+                disabled={sending}
               />
             </Box>
           </Box>
