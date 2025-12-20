@@ -35,10 +35,7 @@ const getApiBaseUrl = () => {
 }
 
 // v1.LLMService/Chat を呼び出す関数
-async function chatWithLLM(
-  message: string,
-  signal?: AbortSignal
-): Promise<string> {
+async function chatWithLLM(message: string, signal?: AbortSignal): Promise<string> {
   const response = await fetch(`${getApiBaseUrl()}/v1.LLMService/Chat`, {
     method: "POST",
     headers: {
@@ -83,10 +80,7 @@ export function ChatContent() {
 
     try {
       // v1.LLMService/Chat を呼び出し
-      const assistantText = await chatWithLLM(
-        trimmed,
-        abortControllerRef.current.signal
-      )
+      const assistantText = await chatWithLLM(trimmed, abortControllerRef.current.signal)
 
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
