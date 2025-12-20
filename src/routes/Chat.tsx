@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FormEvent } from "react"
+import { useState, useRef, useEffect, useCallback, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Box,
@@ -16,7 +16,9 @@ import SmartToyIcon from "@mui/icons-material/SmartToy"
 import PersonIcon from "@mui/icons-material/Person"
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"
+import { useMutation } from "@connectrpc/connect-query"
 import { colors } from "@/theme"
+import { sendToLLM, receiveFromLLM } from "@/gen/proto/v1/md_service-MDService_connectquery"
 
 export type Role = "user" | "assistant"
 
@@ -26,14 +28,9 @@ export type ChatMessage = {
   content: string
 }
 
-function createMockAssistantReply(userMessage: string): string {
-  // 実際のLLM連携部分はここを差し替える想定
-  if (!userMessage.trim()) {
-    return "何か質問や相談があれば、テキストボックスに入力して送信してください。"
-  }
-
-  return `（モック応答）\n\nあなたのメッセージ:\n「${userMessage}」\n\nここにLLMからの実際の回答が表示される想定です。`
-}
+// LLMレスポンスをポーリングする間隔（ミリ秒）
+const POLLING_INTERVAL = 500
+const MAX_POLLING_ATTEMPTS = 60 // 最大30秒待機
 
 // 再利用可能なチャットコンテンツコンポーネント
 export function ChatContent() {
@@ -41,6 +38,35 @@ export function ChatContent() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // LLM API mutations
+  const { mutateAsync: sendToLLMAsync } = useMutation(sendToLLM)
+  const { mutateAsync: receiveFromLLMAsync } = useMutation(receiveFromLLM)
+
+  // LLMからのレスポンスをポーリングして取得
+  const pollForResponse = useCallback(
+    async (requestId: string): Promise<string> => {
+      for (let attempt = 0; attempt < MAX_POLLING_ATTEMPTS; attempt++) {
+        // キャンセルチェック
+        if (abortControllerRef.current?.signal.aborted) {
+          throw new Error("リクエストがキャンセルされました")
+        }
+
+        const response = await receiveFromLLMAsync({ requestId })
+
+        if (response.isComplete) {
+          return response.text
+        }
+
+        // レスポンスが完了していない場合は待機してリトライ
+        await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL))
+      }
+
+      throw new Error("LLMからのレスポンスがタイムアウトしました")
+    },
+    [receiveFromLLMAsync]
+  )
 
   const handleSubmit = async () => {
     const trimmed = input.trim()
@@ -56,16 +82,23 @@ export function ChatContent() {
     setInput("")
     setIsLoading(true)
 
-    // 実際のLLM API呼び出しに差し替えるポイント
-    const simulateRequest = () =>
-      new Promise<string>((resolve) => {
-        window.setTimeout(() => {
-          resolve(createMockAssistantReply(trimmed))
-        }, 800)
-      })
+    // 新しいリクエスト用のAbortControllerを作成
+    abortControllerRef.current = new AbortController()
 
     try {
-      const assistantText = await simulateRequest()
+      // LLMにプロンプトを送信
+      const sendResponse = await sendToLLMAsync({
+        prompt: trimmed,
+        context: undefined,
+      })
+
+      if (!sendResponse.accepted) {
+        throw new Error("LLMリクエストが受け付けられませんでした")
+      }
+
+      // レスポンスをポーリング
+      const assistantText = await pollForResponse(sendResponse.requestId)
+
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -77,13 +110,24 @@ export function ChatContent() {
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "申し訳ございません。エラーが発生しました。もう一度お試しください。",
+        content:
+          error instanceof Error
+            ? `申し訳ございません。エラーが発生しました: ${error.message}`
+            : "申し訳ございません。エラーが発生しました。もう一度お試しください。",
       }
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      abortControllerRef.current = null
     }
   }
+
+  // コンポーネントアンマウント時にリクエストをキャンセル
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   useEffect(() => {
     const el = scrollContainerRef.current
