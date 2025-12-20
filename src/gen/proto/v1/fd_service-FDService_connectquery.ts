@@ -34,10 +34,3 @@ export const stopPatternMatching = FDService.method.stopPatternMatching;
  * @generated from rpc v1.FDService.CalculateFraming
  */
 export const calculateFraming = FDService.method.calculateFraming;
-
-/**
- * CO への制御コマンド
- *
- * @generated from rpc v1.FDService.StreamControlCommands
- */
-export const streamControlCommands = FDService.method.streamControlCommands;

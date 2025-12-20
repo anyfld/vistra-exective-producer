@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, ProcessImageRequest, ProcessImageResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamControlCommandsRequest, StreamControlCommandsResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
+import { CalculateFramingRequest, CalculateFramingResponse, ExecuteCinematographyRequest, ExecuteCinematographyResponse, FDServiceStreamCinematographyInstructionsRequest, FDServiceStreamCinematographyInstructionsResponse, ProcessImageRequest, ProcessImageResponse, StartPatternMatchingRequest, StartPatternMatchingResponse, StopPatternMatchingRequest, StopPatternMatchingResponse, StreamPatternMatchResultsRequest, StreamPatternMatchResultsResponse } from "./fd_service_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -79,17 +79,6 @@ export const FDService = {
       name: "CalculateFraming",
       I: CalculateFramingRequest,
       O: CalculateFramingResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * CO への制御コマンド
-     *
-     * @generated from rpc v1.FDService.StreamControlCommands
-     */
-    streamControlCommands: {
-      name: "StreamControlCommands",
-      I: StreamControlCommandsRequest,
-      O: StreamControlCommandsResponse,
       kind: MethodKind.Unary,
     },
   }
